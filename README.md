@@ -1,6 +1,8 @@
 # ZOOM Firmware Editor
 ZOOM Firmware Editor is a software for modifying guitar/bass multi-effects pedal firmware updater files. It can be used for adding, removing, swapping effects; modifying drum patterns and replacing drum sample sounds.
 
+![Application screenshot](screenshot.png)
+
 There are 2 types of supported pedals:
 ##### Multi-effect pedals that use ZDL-patch format:
 ```
