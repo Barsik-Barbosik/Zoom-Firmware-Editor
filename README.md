@@ -1,5 +1,5 @@
-# ZOOM Firmware Editor
-ZOOM Firmware Editor is a software for modifying guitar/bass multi-effects pedal firmware updater files. It can be used for adding, removing, swapping effects; modifying drum patterns and replacing drum sample sounds.
+# Zoom Firmware Editor
+Zoom Firmware Editor is a software for modifying guitar/bass multi-effects pedal firmware updater files. It can be used for adding, removing, swapping effects; modifying drum patterns and replacing drum sample sounds.
 
 ![Application screenshot](screenshot.png)
 
@@ -44,7 +44,7 @@ Other discontinued products
 \* "Four-series" multi-effect pedals could be compatible, but firmware updaters for them are not yet available (april 2019).
 
 ## Getting Started
-ZOOM Firmware Editor application is a self-executable jar-file. If you have Java JRE installed, then double-click on "ZoomFirmwareEditor.jar" should launch it.
+Zoom Firmware Editor application is a self-executable jar-file. If you have Java JRE installed, then double-click on "ZoomFirmwareEditor.jar" should launch it.
 
 **Important notice!** If you are going to inject any **GUITAR** amplifier patch into any **BASS** pedal firmware, then you should inject the file **"CMN_DRV.ZDL"** too! 
 
