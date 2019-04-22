@@ -24,8 +24,8 @@ ZOOM G5n
 ZOOM B3n
 ZOOM AC-2
 ZOOM AC-3
-ZOOM G1 Four (remove "GUARDZDL.ZT2"?)
-ZOOM G1X Four (remove "GUARDZDL.ZT2"?)
+ZOOM G1 Four (remove "GUARDZDL.ZT2" from file table?)
+ZOOM G1X Four (remove "GUARDZDL.ZT2" from file table?)
 ZOOM B1 Four *
 ZOOM B1X Four *
 
