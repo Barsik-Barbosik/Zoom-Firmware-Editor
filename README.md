@@ -24,6 +24,12 @@ ZOOM G5n
 ZOOM B3n
 ZOOM AC-2
 ZOOM AC-3
+ZOOM G1 Four (remove "GUARDZDL.ZT2"?)
+ZOOM G1X Four (remove "GUARDZDL.ZT2"?)
+ZOOM B1 Four *
+ZOOM B1X Four *
+
+* Firmware updaters for "B1 Four" and "B1X Four" are not yet available (april 2019).
 ```
 It seems that both pedal types are not compatible with each other: ZDL-type pedals cannot use ZD2-patches and vice versa.
 
@@ -31,17 +37,12 @@ For example, if your multi-effect processor is "G1on", then you can add effects 
 
 ##### Not supported pedals:
 ```
-ZOOM G1 Four *
-ZOOM G1X Four *
-ZOOM B1 Four *
-ZOOM B1X Four *
 ZOOM G3
 ZOOM G5
 ZOOM B3
 ZOOM MS-100BT
 Other discontinued products
 ```
-\* "Four-series" multi-effect pedals could be compatible, but firmware updaters for them are not yet available (april 2019).
 
 ## Getting Started
 Zoom Firmware Editor application is a self-executable jar-file. If you have Java JRE installed, then double-click on "ZoomFirmwareEditor.jar" should launch it.
