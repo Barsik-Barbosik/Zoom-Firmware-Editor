@@ -4,7 +4,7 @@ Zoom Firmware Editor is a software for modifying guitar/bass multi-effects pedal
 ![Application screenshot](screenshot.png)
 
 There are 2 types of supported pedals:
-##### Multi-effect pedals that use ZDL-patch format:
+##### Multi-effect pedals that use ZDL-effect format:
 ```
 ZOOM G1on
 ZOOM G1Xon
@@ -15,7 +15,7 @@ ZOOM MS-60B
 ZOOM MS-70CDR
 ```
 
-##### Multi-effect pedals that use ZD2-patch format:
+##### Multi-effect pedals that use ZD2-effect format:
 ```
 ZOOM G3X
 ZOOM G3n
@@ -24,14 +24,14 @@ ZOOM G5n
 ZOOM B3n
 ZOOM AC-2
 ZOOM AC-3
-ZOOM G1 Four (remove "GUARDZDL.ZT2" from file table?)
-ZOOM G1X Four (remove "GUARDZDL.ZT2" from file table?)
+ZOOM G1 Four (modify "GUARDZDL.ZT2" or remove from file table?)
+ZOOM G1X Four (modify "GUARDZDL.ZT2" or remove from file table?)
 ZOOM B1 Four *
 ZOOM B1X Four *
 
 * Firmware updaters for "B1 Four" and "B1X Four" are not yet available (april 2019).
 ```
-It seems that both pedal types are not compatible with each other: ZDL-type pedals cannot use ZD2-patches and vice versa.
+It seems that both pedal types are not compatible with each other: ZDL-type pedals cannot use ZD2-effects and vice versa.
 
 For example, if your multi-effect processor is "G1on", then you can add effects from "B1on", "MS-50G", "MS-60B" (ZDL). But you can't add effects from "G5n", "AC-2" or "B3n" (ZD2).
 
@@ -49,7 +49,9 @@ Zoom Firmware Editor application is a self-executable jar-file. If you have Java
 
 If you dont have Java installed on your computer, you can download and run "ZoomFirmwareEditor-setup.exe". That setup application will install the compiled Windows executable with embedded JVM (created using Excelsior JET).
 
-**Important notice!** If you are going to inject any **GUITAR** amplifier patch into any **BASS** pedal firmware, then you should inject the file **"CMN_DRV.ZDL"** too! 
+**Important notice!** If you are going to inject any **GUITAR** amplifier effect into any **BASS** pedal firmware, then you should inject the file **"CMN_DRV.ZDL"** too! 
+
+Some of unique "MS-50G" effects are not included into it's firmware updater. But there is an official "MS-50G Effect Manager", which includes a password-protected archive with all 173 effects. Password is "fDmnZwm2H3mtL8KX". Thanks to GitHub user @UnnoTed! Unpacked ZDL-files can be downloaded from his [repository](https://github.com/UnnoTed/zoom-ms50g/tree/master/efx_1_00).
 
 ## Requirements
 * Java 8 or later
@@ -90,12 +92,13 @@ Structure of content block:
 Patch order can be organized by using FLST_SEQ.ZDT/FLST_SEQ.ZT2 files. In the current version of Zoom Firmware Editor those files are not used (and automatically excluded from the firmware: that gives 2 extra blocks of free space). Patch file order is achieved by sorting the file table. That kind of sorting is limited: patches are still grouped by the effect type.
 
 ## TODO
-* Detect bass firmwares and show CMN_DRV.ZDL requirement notification when patch is missing
+* Detect bass firmwares and show notification when CMN_DRV.ZDL file is missing
 * Separate file filters for ZDL and ZD2
 * Drum pattern editor
 * Drum sample sound editor or just a menu for replacing sound files (raw-file replacing is already possible)
 * Localization
 * Code refactoring?
+* Rename: patch -> effect
 
 ## Acknowledgments
 I would like to thank the Youtube user **compashthefirst** for the idea of that project. The main algorithm of swapping effects on ZOOM pedals is based on his video tutorial.
