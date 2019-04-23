@@ -51,7 +51,7 @@ If you dont have Java installed on your computer, you can download and run "Zoom
 
 **Important notice!** If you are going to inject any **GUITAR** amplifier effect into any **BASS** pedal firmware, then you should inject the file **"CMN_DRV.ZDL"** too! 
 
-Some of unique "MS-50G" effects are not included into it's firmware updater. But there is an official "MS-50G Effect Manager", which includes a password-protected archive with all 173 effects. Password is "fDmnZwm2H3mtL8KX". Thanks to GitHub user @UnnoTed! Unpacked ZDL-files can be downloaded from his [repository](https://github.com/UnnoTed/zoom-ms50g/tree/master/efx_1_00).
+Some of unique "MS-50G" effects are not included into it's firmware updater. But there is an official "MS-50G Effect Manager", which includes a password-protected archive with all 173 effects. Password is "fDmnZwm2H3mtL8KX". Thanks to GitHub user UnnoTed! Unpacked ZDL-files can be downloaded from his [repository](https://github.com/UnnoTed/zoom-ms50g/tree/master/efx_1_00).
 
 ## Requirements
 * Java 8 or later
