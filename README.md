@@ -1,5 +1,7 @@
 # Zoom Firmware Editor
-Zoom Firmware Editor is a software for modifying guitar/bass multi-effects pedal firmware updater files. It can be used for adding, removing, swapping effects; modifying drum patterns and replacing drum sample sounds.
+Zoom Firmware Editor is a software for modifying guitar/bass multi-effects pedal firmware updater files. It can be used for adding, removing, swapping effects; replacing drum sample sounds.
+
+Later will be added possibitily of modifying drum patterns. 
 
 ![Application screenshot](screenshot.png)
 
@@ -24,12 +26,12 @@ ZOOM G5n
 ZOOM B3n
 ZOOM AC-2
 ZOOM AC-3
-ZOOM G1 Four (modify "GUARDZDL.ZT2" or remove from file table?)
-ZOOM G1X Four (modify "GUARDZDL.ZT2" or remove from file table?)
+ZOOM G1 Four *
+ZOOM G1X Four *
 ZOOM B1 Four *
 ZOOM B1X Four *
 
-* Firmware updaters for "B1 Four" and "B1X Four" are not yet available (april 2019).
+* - Four-series firmware contains a new file: "GUARDZDL.ZT2". Should it be modified or can be simply removed from file list?
 ```
 It seems that both pedal types are not compatible with each other: ZDL-type pedals cannot use ZD2-effects and vice versa.
 
