@@ -3,6 +3,7 @@ package main.java.zoomeditor.service;
 import main.java.ZoomFirmwareEditor;
 import main.java.zoomeditor.model.FileTable;
 import main.java.zoomeditor.model.Firmware;
+import main.java.zoomeditor.model.FlstSeqZDT;
 import main.java.zoomeditor.model.Patch;
 import main.java.zoomeditor.util.ArrayUtils;
 import main.java.zoomeditor.util.ByteUtils;
@@ -135,6 +136,9 @@ public class FirmwareService {
                 defragmentFirmware(firm);
             } else {
                 FileTableService.getInstance().rebuildAllFileTables(firm); // required after moving patches
+            }
+            if (!"true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("excludeSequenceFiles"))){
+                updateFlstSeq(firm);
             }
             // read unmodified firmware
             byte[] allBytes = Files.readAllBytes(firm.getFirmwareFile().toPath());
@@ -326,6 +330,20 @@ public class FirmwareService {
             } else {
                 log.info("Block: " + i + " is not used!!");
             }
+        }
+    }
+
+    /**
+     * Updates sequence file.
+     *
+     * @param firm firmware
+     */
+    private void updateFlstSeq(Firmware firm) {
+        for (byte type : FlstSeqZDT.TYPE_ORDER) {
+            System.out.println("TYPE: " + type);
+        }
+        for (Patch patch : firm.getPatches()) {
+            System.out.println("QQ EFFECT: " + patch.getFileName() + ", TYPE: " + ByteUtils.bytesToHexString(patch.getType()));
         }
     }
 

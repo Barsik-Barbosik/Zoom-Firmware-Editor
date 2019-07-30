@@ -91,6 +91,7 @@ public class PatchService {
 
             patch.setContent(patchContent);
             patch.setName(patch.extractNameFromContent());
+            patch.setType(patch.extractTypeFromContent());
 
             // log.info(patch.toString());
             return patch;

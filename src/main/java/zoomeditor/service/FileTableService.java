@@ -112,6 +112,7 @@ class FileTableService {
                         FileTableService.getInstance().clearBlocksFromFilename(firm, patch.getFileName());
                     }
                     patch.setName(patch.extractNameFromContent());
+                    patch.setType(patch.extractTypeFromContent());
                     //log.info(patch.getInfo());
                 } catch (Exception e) {
                     log.log(Level.SEVERE, patch.getFileName() + " content getting error: " + e.getMessage(), e);
