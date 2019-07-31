@@ -101,6 +101,7 @@ Patch order can be organized by using FLST_SEQ.ZDT/FLST_SEQ.ZT2 files. In the cu
 * Localization
 * Code refactoring?
 * Rename: patch -> effect
+* Add effect descriptions
 
 ## Acknowledgments
 I would like to thank the Youtube user **compashthefirst** for the idea of that project. The main algorithm of swapping effects on ZOOM pedals is based on his video tutorial.

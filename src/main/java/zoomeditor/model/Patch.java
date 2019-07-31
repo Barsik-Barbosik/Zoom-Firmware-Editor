@@ -20,7 +20,7 @@ public class Patch {
     private int size;
     private byte[] fileTableItem;
     private byte[] content;
-    private byte[] type;
+    private byte type;
 
     public String extractFileNameFromFileTableItem() {
         if (fileTableItem == null || fileTableItem.length == 0) {
@@ -48,11 +48,11 @@ public class Patch {
         return new String(ArrayUtils.copyPart(content, nameEndPos - NAME_SIZE, NAME_SIZE)).trim();
     }
 
-    public byte[] extractTypeFromContent() {
+    public byte extractTypeFromContent() {
         if (content == null || content.length == 0) {
-            return null;
+            return (byte) 0xFF; // null
         }
-        return ArrayUtils.copyPart(content, FlstSeqZDT.ZDL_OFFSET, 1);
+        return content[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL];
     }
 
     public byte[] getAddressBytes() {
@@ -117,11 +117,11 @@ public class Patch {
         this.content = content;
     }
 
-    public byte[] getType() {
+    public byte getType() {
         return type;
     }
 
-    public void setType(byte[] type) {
+    public void setType(byte type) {
         this.type = type;
     }
 

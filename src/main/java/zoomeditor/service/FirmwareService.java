@@ -8,6 +8,7 @@ import main.java.zoomeditor.model.Patch;
 import main.java.zoomeditor.util.ArrayUtils;
 import main.java.zoomeditor.util.ByteUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -137,7 +138,7 @@ public class FirmwareService {
             } else {
                 FileTableService.getInstance().rebuildAllFileTables(firm); // required after moving patches
             }
-            if (!"true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("excludeSequenceFiles"))){
+            if (!"true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("excludeSequenceFiles"))) {
                 updateFlstSeq(firm);
             }
             // read unmodified firmware
@@ -319,6 +320,51 @@ public class FirmwareService {
     }
 
     /**
+     * Updates sequence file.
+     *
+     * @param firm firmware
+     */
+    private void updateFlstSeq(Firmware firm) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        try {
+            for (byte type : FlstSeqZDT.TYPE_ORDER) {
+                byte[] line = FlstSeqZDT.OPENING_LINE;
+                line[FlstSeqZDT.TYPE_BYTE_POS_IN_SEQ] = type;
+                // TODO: do not write types without effects (except type 0)
+                outputStream.write(line);
+
+                if (type == (byte) 0x00) {
+                    outputStream.write(FlstSeqZDT.EMPTY_LINE);
+                } else {
+                    // TODO: optimize algorithm (sort effects by type?)
+                    for (Patch patch : firm.getPatches()) {
+                        if (type == patch.getType() && patch.getFileName() != null && !Firmware.EXCLUDE_FILENAMES.contains(patch.getFileName())) {
+                            line = FlstSeqZDT.EMPTY_LINE;
+                            // TODO: Fix "CAVE.ZDLLLDL." etc
+                            System.arraycopy(patch.getFileName().getBytes(), 0, line, 0, patch.getFileName().length());
+                            log.info("Type: " + type + ", effect: " + patch.getFileName());
+                            outputStream.write(line);
+                        }
+                    }
+                }
+
+                line = FlstSeqZDT.ENDING_LINE;
+                line[FlstSeqZDT.TYPE_BYTE_POS_IN_SEQ] = type;
+                outputStream.write(line);
+            }
+        } catch (IOException e) {
+            log.severe(e.getMessage());
+        }
+
+        for (Patch patch : firm.getPatches()) {
+            if ("FLST_SEQ.ZDT".equals(patch.getFileName())) {
+                patch.setContent(outputStream.toByteArray());
+            }
+        }
+    }
+
+    /**
      * Prints block allocation table.
      *
      * @param firm firmware
@@ -330,20 +376,6 @@ public class FirmwareService {
             } else {
                 log.info("Block: " + i + " is not used!!");
             }
-        }
-    }
-
-    /**
-     * Updates sequence file.
-     *
-     * @param firm firmware
-     */
-    private void updateFlstSeq(Firmware firm) {
-        for (byte type : FlstSeqZDT.TYPE_ORDER) {
-            System.out.println("TYPE: " + type);
-        }
-        for (Patch patch : firm.getPatches()) {
-            System.out.println("QQ EFFECT: " + patch.getFileName() + ", TYPE: " + ByteUtils.bytesToHexString(patch.getType()));
         }
     }
 
