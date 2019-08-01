@@ -50,7 +50,7 @@ public class Patch {
 
     public byte extractTypeFromContent() {
         if (content == null || content.length == 0) {
-            return (byte) 0xFF; // null
+            return (byte) 0x00; // null
         }
         return content[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL];
     }

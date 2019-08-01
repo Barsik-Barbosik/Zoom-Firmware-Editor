@@ -133,13 +133,11 @@ public class FirmwareService {
     public boolean saveModifiedFirmwareFile(Firmware firm, Path filePath) {
         log.info("Saving modified firmware file: " + filePath.getFileName().toString());
         try {
+            updateFlstSeq(firm);
             if ("true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("enableDefragmentation"))) {
                 defragmentFirmware(firm);
             } else {
                 FileTableService.getInstance().rebuildAllFileTables(firm); // required after moving patches
-            }
-            if (!"true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("excludeSequenceFiles"))) {
-                updateFlstSeq(firm);
             }
             // read unmodified firmware
             byte[] allBytes = Files.readAllBytes(firm.getFirmwareFile().toPath());
@@ -239,6 +237,8 @@ public class FirmwareService {
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("tooManyFilesError"));
         }
 
+        updateFlstSeq(firm);
+
         if (rebuildFileTable) {
             FileTableService.getInstance().rebuildAllFileTables(firm);
         }
@@ -253,6 +253,7 @@ public class FirmwareService {
             for (String fileName : filesToRemove) {
                 FileTableService.getInstance().clearBlocksFromFilename(firm, fileName);
             }
+            updateFlstSeq(firm);
             FileTableService.getInstance().rebuildAllFileTables(firm);
         } catch (Exception e) {
             log.severe("Patch remove error");
@@ -325,41 +326,50 @@ public class FirmwareService {
      * @param firm firmware
      */
     private void updateFlstSeq(Firmware firm) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        if (!"true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("excludeSequenceFiles"))) {
+            for (Patch file : firm.getPatches()) {
+                if (FlstSeqZDT.FILE_NAME.equals(file.getFileName())) {
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    file.setContent(ArrayUtils.makeAndFillArray(FlstSeqZDT.FILE_SIZE, (byte) 0x00));
 
-        try {
-            for (byte type : FlstSeqZDT.TYPE_ORDER) {
-                byte[] line = FlstSeqZDT.OPENING_LINE;
-                line[FlstSeqZDT.TYPE_BYTE_POS_IN_SEQ] = type;
-                // TODO: do not write types without effects (except type 0)
-                outputStream.write(line);
+                    try {
+                        // TODO: optimize algorithm (sort effects by type?)
+                        for (byte type : FlstSeqZDT.TYPE_ORDER) {
+                            ByteArrayOutputStream middleLines = new ByteArrayOutputStream();
 
-                if (type == (byte) 0x00) {
-                    outputStream.write(FlstSeqZDT.EMPTY_LINE);
-                } else {
-                    // TODO: optimize algorithm (sort effects by type?)
-                    for (Patch patch : firm.getPatches()) {
-                        if (type == patch.getType() && patch.getFileName() != null && !Firmware.EXCLUDE_FILENAMES.contains(patch.getFileName())) {
-                            line = FlstSeqZDT.EMPTY_LINE;
-                            // TODO: Fix "CAVE.ZDLLLDL." etc
-                            System.arraycopy(patch.getFileName().getBytes(), 0, line, 0, patch.getFileName().length());
-                            log.info("Type: " + type + ", effect: " + patch.getFileName());
-                            outputStream.write(line);
+                            if (type == (byte) 0x00) {
+                                middleLines.write(FlstSeqZDT.EMPTY_LINE.getBytes());
+                            } else {
+                                for (Patch patch : firm.getPatches()) {
+                                    if (type == patch.getType() && patch.getFileName() != null && !Firmware.EXCLUDE_FILENAMES.contains(patch.getFileName())) {
+                                        byte[] line = FlstSeqZDT.EMPTY_LINE.getBytes();
+                                        System.arraycopy(patch.getFileName().getBytes(), 0, line, 0, patch.getFileName().length());
+                                        log.info("Type: " + type + ", effect: " + patch.getFileName());
+                                        middleLines.write(line);
+                                    }
+                                }
+                            }
+
+                            if (middleLines.size() > 0) {
+                                byte[] line = FlstSeqZDT.OPENING_LINE;
+                                line[FlstSeqZDT.TYPE_BYTE_POS_IN_SEQ] = type;
+                                outputStream.write(line);
+
+                                outputStream.write(middleLines.toByteArray());
+
+                                line = FlstSeqZDT.ENDING_LINE;
+                                line[FlstSeqZDT.TYPE_BYTE_POS_IN_SEQ] = type;
+                                outputStream.write(line);
+                            }
                         }
+                    } catch (IOException e) {
+                        log.severe(e.getMessage());
                     }
+
+                    byte[] output = outputStream.toByteArray();
+                    System.arraycopy(output, 0, file.getContent(), 0, output.length);
+                    break;
                 }
-
-                line = FlstSeqZDT.ENDING_LINE;
-                line[FlstSeqZDT.TYPE_BYTE_POS_IN_SEQ] = type;
-                outputStream.write(line);
-            }
-        } catch (IOException e) {
-            log.severe(e.getMessage());
-        }
-
-        for (Patch patch : firm.getPatches()) {
-            if ("FLST_SEQ.ZDT".equals(patch.getFileName())) {
-                patch.setContent(outputStream.toByteArray());
             }
         }
     }
