@@ -94,6 +94,7 @@ Structure of content block:
 Patch order can be organized by using FLST_SEQ.ZDT/FLST_SEQ.ZT2 files. In the current version of Zoom Firmware Editor those files are not used (and automatically excluded from the firmware: that gives 2 extra blocks of free space). Patch file order is achieved by sorting the file table. That kind of sorting is limited: patches are still grouped by the effect type.
 
 ## TODO
+* Add columns: effect type, effect description
 * Detect bass firmwares and show notification when CMN_DRV.ZDL file is missing
 * Separate file filters for ZDL and ZD2
 * Drum pattern editor
@@ -101,7 +102,6 @@ Patch order can be organized by using FLST_SEQ.ZDT/FLST_SEQ.ZT2 files. In the cu
 * Localization
 * Code refactoring?
 * Rename: patch -> effect
-* Add effect descriptions
 
 ## Acknowledgments
 I would like to thank the Youtube user **compashthefirst** for the idea of that project. The main algorithm of swapping effects on ZOOM pedals is based on his video tutorial.
