@@ -101,6 +101,48 @@ public class PatchService {
         }
     }
 
+
+    public static String getEffectTypeName(byte type, String filename) {
+        if (filename.toUpperCase().endsWith("ZDL")) {
+            switch(type) {
+                case (byte) 0x01:
+                    return "DYNAMICS";
+                case (byte) 0x02:
+                    return "FILTER";
+                case (byte) 0x03:
+                    return "GUITAR DRIVE";
+                case (byte) 0x0C:
+                    return "MS60B DRIVE";
+                case (byte) 0x0D:
+                    return "MS60B DRIVE";
+                case (byte) 0x14:
+                    return "BASS DRIVE";
+                case (byte) 0x16:
+                    return "BASS DRIVE";
+                case (byte) 0x04:
+                    return "GUTAR AMP";
+                case (byte) 0x05:
+                    return "BASS AMP";
+                case (byte) 0x06:
+                    return "MODULATION";
+                case (byte) 0x07:
+                    return "SFX";
+                case (byte) 0x08:
+                    return "DELAY";
+                case (byte) 0x09:
+                    return "REVERB";
+                case (byte) 0x0B:
+                    return "PEDAL";
+                default:
+                    return String.format("TYPE \"%02x\"", type);
+            }
+        } else if (filename.toUpperCase().endsWith("RAW")) {
+            return "DRUM SOUND";
+        } else {
+            return "";
+        }
+    }
+
     /**
      * Calculates the patch blocks count.
      *

@@ -23,7 +23,7 @@ public class PatchTableModel implements TableModel {
 
     @Override
     public int getColumnCount() {
-        return 4;
+        return 5;
     }
 
     @Override
@@ -34,8 +34,10 @@ public class PatchTableModel implements TableModel {
             case 1:
                 return ZoomFirmwareEditor.getMessage("patchNameColumn");
             case 2:
-                return ZoomFirmwareEditor.getMessage("sizeColumn");
+                return ZoomFirmwareEditor.getMessage("typeColumn");
             case 3:
+                return ZoomFirmwareEditor.getMessage("sizeColumn");
+            case 4:
                 return ZoomFirmwareEditor.getMessage("blocksColumn");
         }
         return "";
@@ -44,7 +46,7 @@ public class PatchTableModel implements TableModel {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
         //return getValueAt(0, columnIndex).getClass();
-        if (columnIndex == 2 || columnIndex == 3) {
+        if (columnIndex == 3 || columnIndex == 4) {
             return Number.class;
         }
         return String.class;
@@ -64,8 +66,10 @@ public class PatchTableModel implements TableModel {
             case 1:
                 return bean.getName();
             case 2:
-                return bean.getSize();
+                return PatchService.getEffectTypeName(bean.getType(), bean.getFileName());
             case 3:
+                return bean.getSize();
+            case 4:
                 return PatchService.calculatePatchBlocksCount(bean.getSize());
         }
         return "";
