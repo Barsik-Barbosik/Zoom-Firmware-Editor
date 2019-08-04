@@ -178,6 +178,16 @@ public class FirmwareService {
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("patchIsAlreadyPresentError"));
         }
 
+        // Special fix for multistomp pedals (MS-50G, CDR-70)
+        if (isMultistomp()) {
+            if (patch.getType() == (byte) 0x14) {
+                patch.setType((byte) 0x0C);
+            } else if (patch.getType() == (byte) 0x16) {
+                patch.setType((byte) 0x0D);
+            }
+            patch.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = patch.getType();
+        }
+
         // get free block addresses and put address of the first block into the patch's file table item
         int[] reservedBlocks = new int[blocksCount];
         for (int i = 0; i < blocksCount; i++) {
@@ -387,6 +397,11 @@ public class FirmwareService {
                 log.info("Block: " + i + " is not used!!");
             }
         }
+    }
+
+    private boolean isMultistomp() {
+        // FIXME
+        return true;
     }
 
 }

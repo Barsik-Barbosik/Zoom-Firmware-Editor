@@ -104,6 +104,7 @@ public class PatchService {
 
     public static String getEffectTypeName(byte type, String filename) {
         if (filename.toUpperCase().endsWith("ZDL")) {
+            // TODO: enum
             switch(type) {
                 case (byte) 0x01:
                     return "DYNAMICS";
@@ -112,9 +113,9 @@ public class PatchService {
                 case (byte) 0x03:
                     return "GUITAR DRIVE";
                 case (byte) 0x0C:
-                    return "MS60B DRIVE";
+                    return "BASS DRIVE"; // MS60B
                 case (byte) 0x0D:
-                    return "MS60B DRIVE";
+                    return "BASS DRIVE"; // MS60B
                 case (byte) 0x14:
                     return "BASS DRIVE";
                 case (byte) 0x16:
