@@ -66,6 +66,15 @@ public class FirmwareService {
             firm.setDataBytes(ArrayUtils.copyPart(allBytes,
                     firm.getBinStartPosition() + Firmware.BLOCK_SIZE * Firmware.FIRST_DATA_BLOCK,
                     Firmware.BLOCK_SIZE * (firm.getBinBlocksCount() - Firmware.FIRST_DATA_BLOCK)));
+
+            int pos = ByteUtils.indexOf(allBytes, Firmware.MULTISTOMP_SERIES.getBytes(), 0);
+            if (pos > 0){
+                firm.setPedalSeries(Firmware.MULTISTOMP_SERIES);
+            } else {
+                // TODO: enum, possible series are "ZOOM MS Series", "ZOOM 1 Series", "ZOOM G Series", "ZOOM AC Series"
+                firm.setPedalSeries("NOT MULTISTOMP");
+            }
+            log.info("Pedal series: " + firm.getPedalSeries());
             log.info("BIN blocks count: " + firm.getBinBlocksCount()
                     + ", BIN size: " + (Firmware.BLOCK_SIZE * firm.getBinBlocksCount()) + " bytes");
         } catch (IOException e) {
@@ -178,14 +187,15 @@ public class FirmwareService {
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("patchIsAlreadyPresentError"));
         }
 
-        // Special fix for multistomp pedals (MS-50G, CDR-70)
-        if (isMultistomp()) {
+        // Convert bass drives and amps for multistomp pedals (MS-50G, CDR-70)
+        if (Firmware.MULTISTOMP_SERIES.equals(firm.getPedalSeries())) {
             if (patch.getType() == (byte) 0x14) {
                 patch.setType((byte) 0x0C);
+                patch.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = patch.getType();
             } else if (patch.getType() == (byte) 0x16) {
                 patch.setType((byte) 0x0D);
+                patch.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = patch.getType();
             }
-            patch.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = patch.getType();
         }
 
         // get free block addresses and put address of the first block into the patch's file table item
@@ -397,11 +407,6 @@ public class FirmwareService {
                 log.info("Block: " + i + " is not used!!");
             }
         }
-    }
-
-    private boolean isMultistomp() {
-        // FIXME
-        return true;
     }
 
 }

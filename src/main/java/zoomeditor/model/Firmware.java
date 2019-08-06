@@ -24,7 +24,9 @@ public class Firmware {
     public static final int BLOCK_INFO_SIZE = BLOCK_PREV_ADDR_SIZE + BLOCK_NEXT_ADDR_SIZE + BLOCK_SIZE_SIZE;
     public static final List<String> EXCLUDE_FILENAMES = Collections.unmodifiableList(
             Arrays.asList("FLST_SEQ.ZDT", "FLST_SEQ.ZT2")); // will be excluded from the file table
+    public static final String MULTISTOMP_SERIES = "ZOOM MS Series";
 
+    private String pedalSeries;
     private final File firmwareFile;
     private FileTable fileTable;
     private int binStartPosition;
@@ -43,6 +45,14 @@ public class Firmware {
         dataBytes = null;
         blocks = null;
         patches = null;
+    }
+
+    public String getPedalSeries() {
+        return pedalSeries;
+    }
+
+    public void setPedalSeries(String pedalSeries) {
+        this.pedalSeries = pedalSeries;
     }
 
     public File getFirmwareFile() {
