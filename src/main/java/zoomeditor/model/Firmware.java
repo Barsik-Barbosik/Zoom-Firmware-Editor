@@ -1,5 +1,6 @@
 package main.java.zoomeditor.model;
 
+import main.java.zoomeditor.enums.PedalSeries;
 import main.java.zoomeditor.util.ByteUtils;
 
 import java.io.File;
@@ -24,9 +25,8 @@ public class Firmware {
     public static final int BLOCK_INFO_SIZE = BLOCK_PREV_ADDR_SIZE + BLOCK_NEXT_ADDR_SIZE + BLOCK_SIZE_SIZE;
     public static final List<String> EXCLUDE_FILENAMES = Collections.unmodifiableList(
             Arrays.asList("FLST_SEQ.ZDT", "FLST_SEQ.ZT2")); // will be excluded from the file table
-    public static final String MULTISTOMP_SERIES = "ZOOM MS Series";
 
-    private String pedalSeries;
+    private PedalSeries pedalSeries;
     private final File firmwareFile;
     private FileTable fileTable;
     private int binStartPosition;
@@ -47,11 +47,11 @@ public class Firmware {
         patches = null;
     }
 
-    public String getPedalSeries() {
+    public PedalSeries getPedalSeries() {
         return pedalSeries;
     }
 
-    public void setPedalSeries(String pedalSeries) {
+    public void setPedalSeries(PedalSeries pedalSeries) {
         this.pedalSeries = pedalSeries;
     }
 

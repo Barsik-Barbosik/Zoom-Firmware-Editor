@@ -1,6 +1,7 @@
 package main.java.zoomeditor.service;
 
 import main.java.ZoomFirmwareEditor;
+import main.java.zoomeditor.enums.PedalSeries;
 import main.java.zoomeditor.model.FileTable;
 import main.java.zoomeditor.model.Firmware;
 import main.java.zoomeditor.model.FlstSeqZDT;
@@ -66,14 +67,7 @@ public class FirmwareService {
             firm.setDataBytes(ArrayUtils.copyPart(allBytes,
                     firm.getBinStartPosition() + Firmware.BLOCK_SIZE * Firmware.FIRST_DATA_BLOCK,
                     Firmware.BLOCK_SIZE * (firm.getBinBlocksCount() - Firmware.FIRST_DATA_BLOCK)));
-
-            int pos = ByteUtils.indexOf(allBytes, Firmware.MULTISTOMP_SERIES.getBytes(), 0);
-            if (pos > 0){
-                firm.setPedalSeries(Firmware.MULTISTOMP_SERIES);
-            } else {
-                // TODO: enum, possible series are "ZOOM MS Series", "ZOOM 1 Series", "ZOOM G Series", "ZOOM AC Series"
-                firm.setPedalSeries("NOT MULTISTOMP");
-            }
+            firm.setPedalSeries(detectPedalSeries(allBytes));
             log.info("Pedal series: " + firm.getPedalSeries());
             log.info("BIN blocks count: " + firm.getBinBlocksCount()
                     + ", BIN size: " + (Firmware.BLOCK_SIZE * firm.getBinBlocksCount()) + " bytes");
@@ -91,6 +85,16 @@ public class FirmwareService {
 
         // logBlocksAllocation(firm);
         return firm;
+    }
+
+    private PedalSeries detectPedalSeries(byte[] allBytes) {
+        for (PedalSeries pedalSeries : PedalSeries.values()) {
+            int pos = ByteUtils.indexOf(allBytes, pedalSeries.getValue().getBytes(), 0);
+            if (pos > 0) {
+                return pedalSeries;
+            }
+        }
+        return null;
     }
 
     /**
@@ -187,8 +191,8 @@ public class FirmwareService {
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("patchIsAlreadyPresentError"));
         }
 
-        // Convert bass drives and amps for multistomp pedals (MS-50G, CDR-70)
-        if (Firmware.MULTISTOMP_SERIES.equals(firm.getPedalSeries())) {
+        // convert bass drives and amps for multistomp pedals (MS-50G, CDR-70)
+        if (PedalSeries.ZOOM_MS.equals(firm.getPedalSeries())) {
             if (patch.getType() == (byte) 0x14) {
                 patch.setType((byte) 0x0C);
                 patch.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = patch.getType();
