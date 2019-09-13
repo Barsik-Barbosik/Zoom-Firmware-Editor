@@ -2,10 +2,10 @@ package main.java.zoomeditor.service;
 
 import main.java.ZoomFirmwareEditor;
 import main.java.zoomeditor.enums.PedalSeries;
+import main.java.zoomeditor.model.Effect;
 import main.java.zoomeditor.model.FileTable;
 import main.java.zoomeditor.model.Firmware;
 import main.java.zoomeditor.model.FlstSeqZDT;
-import main.java.zoomeditor.model.Patch;
 import main.java.zoomeditor.util.ArrayUtils;
 import main.java.zoomeditor.util.ByteUtils;
 
@@ -81,7 +81,10 @@ public class FirmwareService {
             log.severe("File table is not found!");
             throw new RuntimeException("File table is not found!");
         }
-        FileTableService.getInstance().fillPatchesAndBlocks(firm);
+
+        // TODO: SORT FILE TABLE BY SEQUENCE & SEQUENCE DEFAULT_TYPE_ORDER!
+
+        FileTableService.getInstance().fillEffectsAndBlocks(firm);
 
         // logBlocksAllocation(firm);
         return firm;
@@ -124,16 +127,16 @@ public class FirmwareService {
     }
 
     /**
-     * Returns a list of patch names.
+     * Returns a list of effect names.
      *
      * @param firm firmware
-     * @return list of natch names
+     * @return list of effect names
      */
-    ArrayList<String> getPatchNames(Firmware firm) {
-        if (firm.getPatches() == null) {
+    ArrayList<String> getEffectNames(Firmware firm) {
+        if (firm.getEffects() == null) {
             return new ArrayList<>();
         }
-        return firm.getPatches().stream().map(Patch::getFileName).collect(Collectors.toCollection(ArrayList::new));
+        return firm.getEffects().stream().map(Effect::getFileName).collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -150,7 +153,7 @@ public class FirmwareService {
             if ("true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("enableDefragmentation"))) {
                 defragmentFirmware(firm);
             } else {
-                FileTableService.getInstance().rebuildAllFileTables(firm); // required after moving patches
+                FileTableService.getInstance().rebuildAllFileTables(firm); // required after moving effects
             }
             // read unmodified firmware
             byte[] allBytes = Files.readAllBytes(firm.getFirmwareFile().toPath());
@@ -170,55 +173,55 @@ public class FirmwareService {
     }
 
     /**
-     * Injects a patch into the current firmware.
+     * Injects a effect into the current firmware.
      *
      * @param firm             firmware
-     * @param patch            patch to inject
+     * @param effect            effect to inject
      * @param rebuildFileTable run file table rebuilding or not
      */
-    public void injectPatch(Firmware firm, Patch patch, boolean rebuildFileTable) {
-        int blocksCount = PatchService.calculatePatchBlocksCount(patch.getSize());
-        log.info("Injecting file: " + patch.getFileName()
+    public void injectEffect(Firmware firm, Effect effect, boolean rebuildFileTable) {
+        int blocksCount = EffectService.calculateEffectBlocksCount(effect.getSize());
+        log.info("Injecting file: " + effect.getFileName()
                 + " (" + blocksCount + " blocks) into " + firm.getFirmwareFile().getName());
 
         if (getUsedBlocksCount(firm) + blocksCount > getTotalBlocksCount(firm)) {
-            log.severe("Patch injection error: not enough free blocks.");
+            log.severe("Effect injection error: not enough free blocks.");
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("notEnoughFreeBlocksError"));
         }
 
-        if (getPatchNames(firm).contains(patch.getFileName())) {
-            log.severe("Patch injection error: selected patch is already present in the firmware.");
-            throw new RuntimeException(ZoomFirmwareEditor.getMessage("patchIsAlreadyPresentError"));
+        if (getEffectNames(firm).contains(effect.getFileName())) {
+            log.severe("Effect injection error: selected effect is already present in the firmware.");
+            throw new RuntimeException(ZoomFirmwareEditor.getMessage("effectIsAlreadyPresentError"));
         }
 
         // convert bass drives and amps for multistomp pedals (MS-50G, CDR-70)
         if (PedalSeries.ZOOM_MS.equals(firm.getPedalSeries())) {
-            if (patch.getType() == (byte) 0x14) {
-                patch.setType((byte) 0x0C);
-                patch.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = patch.getType();
-            } else if (patch.getType() == (byte) 0x16) {
-                patch.setType((byte) 0x0D);
-                patch.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = patch.getType();
+            if (effect.getType() == (byte) 0x14) {
+                effect.setType((byte) 0x0C);
+                effect.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = effect.getType();
+            } else if (effect.getType() == (byte) 0x16) {
+                effect.setType((byte) 0x0D);
+                effect.getContent()[FlstSeqZDT.TYPE_BYTE_POS_IN_ZDL] = effect.getType();
             }
         }
 
-        // get free block addresses and put address of the first block into the patch's file table item
+        // get free block addresses and put address of the first block into the effect's file table item
         int[] reservedBlocks = new int[blocksCount];
         for (int i = 0; i < blocksCount; i++) {
             int address = getFreeBlockAddress(firm);
             if (address == -1) {
-                log.severe("Patch injection error: free block is not found.");
+                log.severe("Effect injection error: free block is not found.");
                 throw new RuntimeException(ZoomFirmwareEditor.getMessage("freeBlockIsNotFoundError")); // that should not happen
             }
             if (i == 0) {
                 System.arraycopy(ByteUtils.shortToBytes(Integer.valueOf(address).shortValue()), 0,
-                        patch.getFileTableItem(), Patch.ADDR_OFFSET, Patch.ADDR_SIZE);
+                        effect.getFileTableItem(), Effect.ADDR_OFFSET, Effect.ADDR_SIZE);
             }
             reservedBlocks[i] = address;
-            firm.getBlocks()[address] = patch.getFileName();
+            firm.getBlocks()[address] = effect.getFileName();
         }
 
-        // insert patch content data into reserved blocks
+        // insert effect content data into reserved blocks
         for (int i = 0; i < blocksCount; i++) {
             int size;
             byte[] blockInfoBytes = ArrayUtils.makeAndFillArray(Firmware.BLOCK_INFO_SIZE, (byte) 0xFF);
@@ -237,7 +240,7 @@ public class FirmwareService {
                 System.arraycopy(sizeBytes, 0, blockInfoBytes, Firmware.BLOCK_SIZE_OFFSET, Firmware.BLOCK_SIZE_SIZE);
             } else {
                 // set size for the last block
-                size = patch.getSize() % (Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE);
+                size = effect.getSize() % (Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE);
                 byte[] sizeBytes = ByteUtils.shortToBytes(Integer.valueOf(size).shortValue());
                 System.arraycopy(sizeBytes, 0, blockInfoBytes, Firmware.BLOCK_SIZE_OFFSET, Firmware.BLOCK_SIZE_SIZE);
             }
@@ -245,7 +248,7 @@ public class FirmwareService {
             // inject block into allBytes[]
             int blockStartPos = Firmware.BLOCK_SIZE * reservedBlocks[i];
             System.arraycopy(blockInfoBytes, 0, firm.getDataBytes(), blockStartPos, Firmware.BLOCK_INFO_SIZE);
-            System.arraycopy(patch.getContent(), i * (Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE),
+            System.arraycopy(effect.getContent(), i * (Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE),
                     firm.getDataBytes(), blockStartPos + Firmware.BLOCK_INFO_SIZE, size);
             if (size < Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE) {
                 // put "FF" until the end of last block
@@ -254,10 +257,10 @@ public class FirmwareService {
             }
         }
 
-        firm.getPatches().add(patch);
+        firm.getEffects().add(effect);
 
-        if (firm.getPatches().size() * FileTable.ITEM_SIZE >= Firmware.BLOCK_SIZE * 2) {
-            log.severe("Too many patch files! File table will not fit into 2 blocks!");
+        if (firm.getEffects().size() * FileTable.ITEM_SIZE >= Firmware.BLOCK_SIZE * 2) {
+            log.severe("Too many effect files! File table will not fit into 2 blocks!");
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("tooManyFilesError"));
         }
 
@@ -269,34 +272,34 @@ public class FirmwareService {
     }
 
     /**
-     * Removes selected patches from the firmware.
+     * Removes selected effects from the firmware.
      */
-    public void removePatchFile(Firmware firm, ArrayList<String> filesToRemove) {
+    public void removeEffectFile(Firmware firm, ArrayList<String> filesToRemove) {
         try {
-            firm.getPatches().removeIf(patch -> filesToRemove.contains(patch.getFileName()));
+            firm.getEffects().removeIf(effect -> filesToRemove.contains(effect.getFileName()));
             for (String fileName : filesToRemove) {
                 FileTableService.getInstance().clearBlocksFromFilename(firm, fileName);
             }
             updateFlstSeq(firm);
             FileTableService.getInstance().rebuildAllFileTables(firm);
         } catch (Exception e) {
-            log.severe("Patch remove error");
+            log.severe("Effect remove error");
         }
     }
 
     /**
-     * Changes the file order in the firmware: moves selected patch up or down.
+     * Changes the file order in the firmware: moves selected effect up or down.
      *
      * @param isUp if true, then direction is "up"
      */
-    public void movePatchUpOrDown(Firmware firm, String fileName, boolean isUp) {
-        for (int i = 0; i < firm.getPatches().size(); i++) {
-            if (fileName.equals(firm.getPatches().get(i).getFileName())) {
+    public void moveEffectUpOrDown(Firmware firm, String fileName, boolean isUp) {
+        for (int i = 0; i < firm.getEffects().size(); i++) {
+            if (fileName.equals(firm.getEffects().get(i).getFileName())) {
                 if (isUp && i > 0) {
-                    Collections.swap(firm.getPatches(), i, i - 1);
+                    Collections.swap(firm.getEffects(), i, i - 1);
                     break;
-                } else if (!isUp && i < firm.getPatches().size() - 1) {
-                    Collections.swap(firm.getPatches(), i, i + 1);
+                } else if (!isUp && i < firm.getEffects().size() - 1) {
+                    Collections.swap(firm.getEffects(), i, i + 1);
                     break;
                 }
             }
@@ -321,7 +324,7 @@ public class FirmwareService {
 
     /**
      * Performs defragmentation/reorganization of firmware's BIN:
-     * all patch content blocks are moved into beginning of firmware's data section and remaining BIN space is filled with "FF" bytes.
+     * all effect content blocks are moved into beginning of firmware's data section and remaining BIN space is filled with "FF" bytes.
      *
      * @param firm firmware
      */
@@ -334,11 +337,11 @@ public class FirmwareService {
             firm.getBlocks()[i] = null;
         }
 
-        List<Patch> oldPatchList = new ArrayList<>(firm.getPatches());
-        firm.setPatches(new ArrayList<>());
+        List<Effect> oldEffectList = new ArrayList<>(firm.getEffects());
+        firm.setEffects(new ArrayList<>());
 
-        for (Patch patch : oldPatchList) {
-            injectPatch(firm, patch, false);
+        for (Effect effect : oldEffectList) {
+            injectEffect(firm, effect, false);
         }
 
         FileTableService.getInstance().rebuildAllFileTables(firm);
@@ -351,24 +354,24 @@ public class FirmwareService {
      */
     private void updateFlstSeq(Firmware firm) {
         if (!"true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("excludeSequenceFiles"))) {
-            for (Patch file : firm.getPatches()) {
+            for (Effect file : firm.getEffects()) {
                 if (FlstSeqZDT.FILE_NAME.equals(file.getFileName())) {
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     file.setContent(ArrayUtils.makeAndFillArray(FlstSeqZDT.FILE_SIZE, (byte) 0x00));
 
                     try {
                         // TODO: optimize algorithm (sort effects by type?)
-                        for (byte type : FlstSeqZDT.TYPE_ORDER) {
+                        for (byte type : FlstSeqZDT.DEFAULT_TYPE_ORDER) {
                             ByteArrayOutputStream middleLines = new ByteArrayOutputStream();
 
                             if (type == (byte) 0x00) {
                                 middleLines.write(FlstSeqZDT.EMPTY_LINE.getBytes());
                             } else {
-                                for (Patch patch : firm.getPatches()) {
-                                    if (type == patch.getType() && patch.getFileName() != null && !Firmware.EXCLUDE_FILENAMES.contains(patch.getFileName())) {
+                                for (Effect effect : firm.getEffects()) {
+                                    if (type == effect.getType() && effect.getFileName() != null && !Firmware.EXCLUDE_FILENAMES.contains(effect.getFileName())) {
                                         byte[] line = FlstSeqZDT.EMPTY_LINE.getBytes();
-                                        System.arraycopy(patch.getFileName().getBytes(), 0, line, 0, patch.getFileName().length());
-                                        log.info("Type: " + type + ", effect: " + patch.getFileName());
+                                        System.arraycopy(effect.getFileName().getBytes(), 0, line, 0, effect.getFileName().length());
+                                        log.info("Type: " + type + ", effect: " + effect.getFileName());
                                         middleLines.write(line);
                                     }
                                 }

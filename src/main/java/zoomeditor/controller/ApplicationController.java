@@ -4,9 +4,9 @@ import main.java.ZoomFirmwareEditor;
 import main.java.zoomeditor.gui.AppWindow;
 import main.java.zoomeditor.gui.MainPanel;
 import main.java.zoomeditor.model.Firmware;
-import main.java.zoomeditor.model.Patch;
+import main.java.zoomeditor.model.Effect;
 import main.java.zoomeditor.service.FirmwareService;
-import main.java.zoomeditor.service.PatchService;
+import main.java.zoomeditor.service.EffectService;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class ApplicationController {
     private static volatile ApplicationController instance = null;
     private final FirmwareService firmwareService;
-    private final PatchService patchService;
+    private final EffectService effectService;
     private static final Logger log = Logger.getLogger(ApplicationController.class.getName());
     private AppWindow appWindow;
     private MainPanel mainPanel;
@@ -31,7 +31,7 @@ public class ApplicationController {
 
     private ApplicationController() {
         firmwareService = FirmwareService.getInstance();
-        patchService = PatchService.getInstance();
+        effectService = EffectService.getInstance();
     }
 
     public static ApplicationController getInstance() {
@@ -111,12 +111,12 @@ public class ApplicationController {
     }
 
     /**
-     * Shows the file saving dialog and performs the save action for each selected patch.
+     * Shows the file saving dialog and performs the save action for each selected effect.
      */
-    public void showSavePatchDialog() {
+    public void showSaveEffectDialog() {
         JTable table = mainPanel.getTable();
         if (table.getSelectedRowCount() > 0) {
-            fc.setDialogTitle(ZoomFirmwareEditor.getMessage("savePatchTitle"));
+            fc.setDialogTitle(ZoomFirmwareEditor.getMessage("saveEffectTitle"));
             fc.resetChoosableFileFilters();
 
             for (int i : table.getSelectedRows()) {
@@ -124,51 +124,51 @@ public class ApplicationController {
                 fc.setSelectedFile(new File(fileName));
                 int returnVal = fc.showSaveDialog(appWindow);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    boolean isSuccessfulSaving = patchService.savePatchFile(
+                    boolean isSuccessfulSaving = effectService.saveEffectFile(
                             firm, fileName, Paths.get(fc.getSelectedFile().getAbsolutePath()));
                     if (!isSuccessfulSaving) {
-                        JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("patchSaveError"),
+                        JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("effectSaveError"),
                                 ZoomFirmwareEditor.getMessage("errorTitle"), JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
         } else {
-            JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("patchesAreNotSelected"),
+            JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("effectsAreNotSelected"),
                     ZoomFirmwareEditor.getMessage("warningTitle"), JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
     /**
-     * Shows the patch selection dialog and then calls the injectPatch() method.
+     * Shows the effect selection dialog and then calls the injectEffect() method.
      */
-    public void showOpenPatchDialog() {
-        fc.setDialogTitle(ZoomFirmwareEditor.getMessage("openPatchTitle"));
+    public void showOpenEffectDialog() {
+        fc.setDialogTitle(ZoomFirmwareEditor.getMessage("openEffectTitle"));
         fc.resetChoosableFileFilters();
         fc.setFileFilter(new FileNameExtensionFilter(ZoomFirmwareEditor.getMessage("zdlAndRawFileFilter"),
                 "zdl", "zd2", "raw"));
         fc.setSelectedFile(new File("")); // clears selection
         int returnVal = fc.showOpenDialog(appWindow);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File patchFile = fc.getSelectedFile();
-            if (patchFile != null) {
-                injectPatch(patchFile);
+            File effectFile = fc.getSelectedFile();
+            if (effectFile != null) {
+                injectEffect(effectFile);
             } else {
-                JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("patchIsNotSelected"),
+                JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("effectIsNotSelected"),
                         ZoomFirmwareEditor.getMessage("errorTitle"), JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
     /**
-     * Injects a patch into the current firmware.
+     * Injects an effect into the current firmware.
      *
-     * @param patchFile patch file
+     * @param effectFile effect file
      */
-    private void injectPatch(File patchFile) {
-        if (firm != null && firm.getPatches() != null) {
+    private void injectEffect(File effectFile) {
+        if (firm != null && firm.getEffects() != null) {
             try {
-                Patch patch = patchService.makePatchFromFile(patchFile);
-                firmwareService.injectPatch(firm, patch, true);
+                Effect effect = effectService.makeEffectFromFile(effectFile);
+                firmwareService.injectEffect(firm, effect, true);
             } catch (Exception e) {
                 log.log(Level.SEVERE, e.getMessage(), e);
                 JOptionPane.showMessageDialog(appWindow, e.getMessage(),
@@ -181,7 +181,7 @@ public class ApplicationController {
     }
 
     /**
-     * Method changes the file order in the firmware: moves selected patch up or down.
+     * Method changes the file order in the firmware: moves selected effect up or down.
      *
      * @param isUp if true, then direction is "up"
      */
@@ -190,26 +190,26 @@ public class ApplicationController {
             int scrollBarValue = mainPanel.getScrollBarValue();
             int selectedRow = mainPanel.getTable().getSelectedRow();
             String fileName = (String) mainPanel.getTable().getValueAt(selectedRow, 0);
-            firmwareService.movePatchUpOrDown(firm, fileName, isUp);
+            firmwareService.moveEffectUpOrDown(firm, fileName, isUp);
             updateGuiElements();
             if (isUp && selectedRow > 0) {
                 mainPanel.getTable().setRowSelectionInterval(selectedRow - 1, selectedRow - 1);
-            } else if (!isUp && selectedRow < firm.getPatches().size() - 1) {
+            } else if (!isUp && selectedRow < firm.getEffects().size() - 1) {
                 mainPanel.getTable().setRowSelectionInterval(selectedRow + 1, selectedRow + 1);
             } else {
                 mainPanel.getTable().setRowSelectionInterval(selectedRow, selectedRow);
             }
             mainPanel.setScrollBarValue(scrollBarValue);
         } else {
-            JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("selectOnePatch"),
+            JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("selectOneEffect"),
                     ZoomFirmwareEditor.getMessage("warningTitle"), JOptionPane.WARNING_MESSAGE);
         }
     }
 
     /**
-     * Removes selected patches from the current firmware.
+     * Removes selected effects from the current firmware.
      */
-    public void removePatch() {
+    public void removeEffect() {
         JTable table = mainPanel.getTable();
         if (table.getSelectedRowCount() > 0) {
             ArrayList<String> filesToRemove = new ArrayList<>();
@@ -217,10 +217,10 @@ public class ApplicationController {
                 String fileName = (String) table.getValueAt(i, 0);
                 filesToRemove.add(fileName);
             }
-            firmwareService.removePatchFile(firm, filesToRemove);
+            firmwareService.removeEffectFile(firm, filesToRemove);
             updateGuiElements();
         } else {
-            JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("patchesAreNotSelected"),
+            JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("effectsAreNotSelected"),
                     ZoomFirmwareEditor.getMessage("warningTitle"), JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -235,23 +235,23 @@ public class ApplicationController {
     /**
      * Updates main GUI elements:<br/>
      * - enables/disables buttons<br/>
-     * - updates patches table<br/>
+     * - updates effects table<br/>
      * - updates used blocks bar.
      */
     private void updateGuiElements() {
         if (firm != null) {
-            ArrayList<Patch> patches = firm.getPatches();
-            if (patches != null) {
+            ArrayList<Effect> effects = firm.getEffects();
+            if (effects != null) {
                 mainPanel.enableControls(true);
                 mainPanel.updateBlocksBar(firmwareService.getUsedBlocksCount(firm),
                         firmwareService.getTotalBlocksCount(firm));
-                mainPanel.updatePatchTable(patches);
+                mainPanel.updateEffectTable(effects);
                 return;
             }
         }
         mainPanel.enableControls(false);
         mainPanel.updateBlocksBar(0, 0);
-        mainPanel.updatePatchTable(null);
+        mainPanel.updateEffectTable(null);
     }
 
 }

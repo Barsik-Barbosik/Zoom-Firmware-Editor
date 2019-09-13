@@ -1,24 +1,24 @@
 package main.java.zoomeditor.gui.tablemodel;
 
 import main.java.ZoomFirmwareEditor;
-import main.java.zoomeditor.model.Patch;
-import main.java.zoomeditor.service.PatchService;
+import main.java.zoomeditor.model.Effect;
+import main.java.zoomeditor.service.EffectService;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.util.List;
 
-public class PatchTableModel implements TableModel {
+public class EffectTableModel implements TableModel {
 
-    private final List<Patch> patches;
+    private final List<Effect> effects;
 
-    public PatchTableModel(List<Patch> patches) {
-        this.patches = patches;
+    public EffectTableModel(List<Effect> effects) {
+        this.effects = effects;
     }
 
     @Override
     public int getRowCount() {
-        return patches.size();
+        return effects.size();
     }
 
     @Override
@@ -32,7 +32,7 @@ public class PatchTableModel implements TableModel {
             case 0:
                 return ZoomFirmwareEditor.getMessage("fileNameColumn");
             case 1:
-                return ZoomFirmwareEditor.getMessage("patchNameColumn");
+                return ZoomFirmwareEditor.getMessage("effectNameColumn");
             case 2:
                 return ZoomFirmwareEditor.getMessage("typeColumn");
             case 3:
@@ -59,18 +59,18 @@ public class PatchTableModel implements TableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Patch bean = patches.get(rowIndex);
+        Effect bean = effects.get(rowIndex);
         switch (columnIndex) {
             case 0:
                 return bean.getFileName();
             case 1:
                 return bean.getName();
             case 2:
-                return PatchService.getEffectTypeName(bean.getType(), bean.getFileName());
+                return EffectService.getEffectTypeName(bean.getType(), bean.getFileName());
             case 3:
                 return bean.getSize();
             case 4:
-                return PatchService.calculatePatchBlocksCount(bean.getSize());
+                return EffectService.calculateEffectBlocksCount(bean.getSize());
         }
         return "";
     }

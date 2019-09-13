@@ -3,7 +3,7 @@ package main.java.zoomeditor.model;
 import main.java.zoomeditor.util.ArrayUtils;
 import main.java.zoomeditor.util.ByteUtils;
 
-public class Patch {
+public class Effect {
     public static final int ADDR_OFFSET = 0;
     public static final int ADDR_SIZE = 2;
     public static final int SIZE_OFFSET = 4;
@@ -16,7 +16,7 @@ public class Patch {
 
     private String fileName;
     private String name;
-    private int address; // patch's first block address
+    private int address; // first block address
     private int size;
     private byte[] fileTableItem;
     private byte[] content;

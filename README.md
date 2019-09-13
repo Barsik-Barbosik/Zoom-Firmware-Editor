@@ -20,10 +20,10 @@ ZOOM MS-70CDR
 ##### Multi-effect pedals that use ZD2-effect format:
 ```
 ZOOM G3X
-ZOOM G3n
+ZOOM G3n (currently works with firmware 2.00)
 ZOOM G3Xn
 ZOOM G5n
-ZOOM B3n
+ZOOM B3n (currently works with firmware 2.00)
 ZOOM AC-2
 ZOOM AC-3
 ZOOM G1 Four *
@@ -31,8 +31,10 @@ ZOOM G1X Four *
 ZOOM B1 Four *
 ZOOM B1X Four *
 
-* - Four-series firmware contains a new file: "GUARDZDL.ZT2". Should it be modified or can be simply removed from file list?
+* - under construction
 ```
+**New effects injection into Four-series pedals is not ready yet. But it is possible! You can you mungwell's python script to install them: [zoom-zt2](https://github.com/mungewell/zoom-zt2)!**
+
 It seems that both pedal types are not compatible with each other: ZDL-type pedals cannot use ZD2-effects and vice versa.
 
 For example, if your multi-effect processor is "G1on", then you can add effects from "B1on", "MS-50G", "MS-60B" (ZDL). But you can't add effects from "G5n", "AC-2" or "B3n" (ZD2).
@@ -82,7 +84,7 @@ If value is "FF", then 1st and 3rd bytes have maximum value among all 4 lists
 * 12 bytes (8-19): filename, followed by "00"
 * 12 bytes (20-31): "FF FF FF FF FF FF FF FF FF FF FF FF"
 
-##### File (patch) content block
+##### File (effect) content block
 Block size is 4096 bytes.<br/>
 Structure of content block:
 * 2 bytes (0-1): previous address; "FF FF" for the first block
@@ -90,8 +92,8 @@ Structure of content block:
 * 2 bytes (4-5): data size (in current block)
 * 4090 bytes (6-4095): content data; followed by "FF", if data size is lesser than 4090 bytes
 
-##### Patch order
-Patch order can be organized by using FLST_SEQ.ZDT/FLST_SEQ.ZT2 files. In the current version of Zoom Firmware Editor those files are not used (and automatically excluded from the firmware: that gives 2 extra blocks of free space). Patch file order is achieved by sorting the file table. That kind of sorting is limited: patches are still grouped by the effect type.
+##### Effects order
+The order of effects can be organized by using FLST_SEQ.ZDT/FLST_SEQ.ZT2 files. In the current version of Zoom Firmware Editor those files are not used (and automatically excluded from the firmware: that gives 2 extra blocks of free space). Effect file order is achieved by sorting the file table. That kind of sorting is limited: effects are still grouped by the effect type.
 
 ## TODO
 * Add columns: effect type, effect description
@@ -101,7 +103,6 @@ Patch order can be organized by using FLST_SEQ.ZDT/FLST_SEQ.ZT2 files. In the cu
 * Drum sample sound editor or just a menu for replacing sound files (raw-file replacing is already possible)
 * Localization
 * Code refactoring?
-* Rename: patch -> effect
 
 ## Acknowledgments
 I would like to thank the Youtube user **compashthefirst** for the idea of that project. The main algorithm of swapping effects on ZOOM pedals is based on his video tutorial.

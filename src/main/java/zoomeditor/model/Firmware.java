@@ -35,7 +35,7 @@ public class Firmware {
     private byte[] systemBytes; // 11 blocks: 3 first blocks and 4*2 "file table" blocks
     private byte[] dataBytes; // NB! First data block contains part of last file table
     private String[] blocks;
-    private ArrayList<Patch> patches;
+    private ArrayList<Effect> effects;
 
     public Firmware(File firmwareFile) {
         this.firmwareFile = firmwareFile;
@@ -44,7 +44,7 @@ public class Firmware {
         systemBytes = null;
         dataBytes = null;
         blocks = null;
-        patches = null;
+        effects = null;
     }
 
     public PedalSeries getPedalSeries() {
@@ -107,11 +107,11 @@ public class Firmware {
         this.blocks = blocks;
     }
 
-    public ArrayList<Patch> getPatches() {
-        return patches;
+    public ArrayList<Effect> getEffects() {
+        return effects;
     }
 
-    public void setPatches(ArrayList<Patch> patches) {
-        this.patches = patches;
+    public void setEffects(ArrayList<Effect> effects) {
+        this.effects = effects;
     }
 }

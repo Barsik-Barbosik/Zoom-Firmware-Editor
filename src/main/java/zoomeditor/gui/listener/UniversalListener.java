@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class UniversalListener implements ActionListener {
-    public enum Action {OPEN_FIRMWARE, SAVE_FIRMWARE, EXTRACT_PATCH, INJECT_PATCH, MOVE_UP, MOVE_DOWN, REMOVE_PATCH}
+    public enum Action {OPEN_FIRMWARE, SAVE_FIRMWARE, EXTRACT_EFFECT, INJECT_EFFECT, MOVE_UP, MOVE_DOWN, REMOVE_EFFECT}
 
     private final ApplicationController applicationController = ApplicationController.getInstance();
     private final Action action;
@@ -23,14 +23,14 @@ public class UniversalListener implements ActionListener {
             case SAVE_FIRMWARE:
                 applicationController.showSaveFirmwareDialog();
                 break;
-            case EXTRACT_PATCH:
-                applicationController.showSavePatchDialog();
+            case EXTRACT_EFFECT:
+                applicationController.showSaveEffectDialog();
                 break;
-            case INJECT_PATCH:
-                applicationController.showOpenPatchDialog();
+            case INJECT_EFFECT:
+                applicationController.showOpenEffectDialog();
                 break;
-            case REMOVE_PATCH:
-                applicationController.removePatch();
+            case REMOVE_EFFECT:
+                applicationController.removeEffect();
                 break;
             case MOVE_UP:
                 applicationController.moveUpOrDown(true);

@@ -1,9 +1,9 @@
 package main.java.zoomeditor.service;
 
 import main.java.ZoomFirmwareEditor;
+import main.java.zoomeditor.model.Effect;
 import main.java.zoomeditor.model.FileTable;
 import main.java.zoomeditor.model.Firmware;
-import main.java.zoomeditor.model.Patch;
 import main.java.zoomeditor.util.ArrayUtils;
 import main.java.zoomeditor.util.ByteUtils;
 
@@ -81,67 +81,67 @@ class FileTableService {
     }
 
     /**
-     * Fills the patch list and blocks array using firmware's file table.
+     * Fills the effects list and blocks array using firmware's file table.
      *
      * @param firm firmware
      */
-    void fillPatchesAndBlocks(Firmware firm) {
+    void fillEffectsAndBlocks(Firmware firm) {
         // prepare block allocation array
         String[] blocks = new String[firm.getBinBlocksCount() - Firmware.FIRST_DATA_BLOCK];
         blocks[0] = "RESERVED (part of file table)";
         firm.setBlocks(blocks);
-        firm.setPatches(new ArrayList<>());
+        firm.setEffects(new ArrayList<>());
 
-        // fill patch list and blocks array
+        // fill effects list and blocks array
         for (int itemPointer = firm.getFileTable().getFileTablePosition() + FileTable.SYSTEM_DATA_SIZE;
              itemPointer < firm.getFileTable().getFileTablePosition() + Firmware.BLOCK_SIZE * 2;
              itemPointer = itemPointer + FileTable.ITEM_SIZE) {
-            //log.info("*** Patch pointer: " + itemPointer + " ***");
+            //log.info("*** Effect pointer: " + itemPointer + " ***");
 
-            Patch patch = PatchService.makePatchFromFileTableItem(ArrayUtils.copyPart(firm.getSystemBytes(),
+            Effect effect = EffectService.makeEffectFromFileTableItem(ArrayUtils.copyPart(firm.getSystemBytes(),
                     itemPointer, FileTable.ITEM_SIZE));
-            if (patch != null && patch.getFileName() != null && !patch.getFileName().isEmpty()) {
+            if (effect != null && effect.getFileName() != null && !effect.getFileName().isEmpty()) {
                 if ("true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("excludeSequenceFiles"))
-                        && Firmware.EXCLUDE_FILENAMES.contains(patch.getFileName())) {
+                        && Firmware.EXCLUDE_FILENAMES.contains(effect.getFileName())) {
                     continue;
                 }
 
                 try {
-                    boolean isSuccess = fillPatchContent(firm, patch);
+                    boolean isSuccess = fillEffectContent(firm, effect);
                     if (!isSuccess) {
-                        FileTableService.getInstance().clearBlocksFromFilename(firm, patch.getFileName());
+                        FileTableService.getInstance().clearBlocksFromFilename(firm, effect.getFileName());
                     }
-                    patch.setName(patch.extractNameFromContent());
-                    patch.setType(patch.extractTypeFromContent());
-                    //log.info(patch.getInfo());
+                    effect.setName(effect.extractNameFromContent());
+                    effect.setType(effect.extractTypeFromContent());
+                    //log.info(effect.getInfo());
                 } catch (Exception e) {
-                    log.log(Level.SEVERE, patch.getFileName() + " content getting error: " + e.getMessage(), e);
+                    log.log(Level.SEVERE, effect.getFileName() + " content getting error: " + e.getMessage(), e);
                 }
 
-                if (patch.getContent() != null
-                        && !FirmwareService.getInstance().getPatchNames(firm).contains(patch.getFileName())) {
-                    //log.info(patch.getFileName() + " has been added to the list.");
-                    firm.getPatches().add(patch);
+                if (effect.getContent() != null
+                        && !FirmwareService.getInstance().getEffectNames(firm).contains(effect.getFileName())) {
+                    //log.info(effect.getFileName() + " has been added to the list.");
+                    firm.getEffects().add(effect);
                 }
             }
         }
     }
 
     /**
-     * Fills the patch content with bytes extracted from firmware.
-     * At the same time fills the firmware's blocks table with patch name.
+     * Fills the effect content with bytes extracted from firmware.
+     * At the same time fills the firmware's blocks table with effect name.
      *
      * @param firm  firmware
-     * @param patch patch, which content should be filled
+     * @param effect effect, which content should be filled
      * @return true, if content is successfully filled
      */
-    private boolean fillPatchContent(Firmware firm, Patch patch) {
-        byte[] content = new byte[patch.getSize()];
+    private boolean fillEffectContent(Firmware firm, Effect effect) {
+        byte[] content = new byte[effect.getSize()];
         int emptyAddress = ByteUtils.bytesToUnsignedShortAsInt(ByteUtils.hexStringToByteArray("FFFF"));
         int previousAddress = emptyAddress;
-        int address = patch.getAddress();
+        int address = effect.getAddress();
         int blockStartPos = Firmware.BLOCK_SIZE * address;
-        firm.getBlocks()[address] = patch.getFileName();
+        firm.getBlocks()[address] = effect.getFileName();
         int currentSize = 0;
 
         while (true) {
@@ -158,7 +158,7 @@ class FileTableService {
                 int blockPrevAddress = ByteUtils.bytesToUnsignedShortAsInt(previousAddressBytes);
 
                 if (previousAddress != blockPrevAddress) {
-                    log.severe("Address validation error, patch: " + patch.getFileName());
+                    log.severe("Address validation error, effect: " + effect.getFileName());
                     log.severe("current address: " + address);
                     log.severe("real previous address: " + previousAddress);
                     log.severe("block previous address: " + blockPrevAddress);
@@ -172,32 +172,32 @@ class FileTableService {
             address = ByteUtils.bytesToUnsignedShortAsInt(nextAddressBytes);
             if (address == emptyAddress) {
                 // validate size
-                if (currentSize != patch.getSize()) {
-                    log.severe(patch.getFileName() + " has invalid size: " + currentSize + " VS " + patch.getSize());
+                if (currentSize != effect.getSize()) {
+                    log.severe(effect.getFileName() + " has invalid size: " + currentSize + " VS " + effect.getSize());
                     return false;
                 }
                 break;
             }
 
             // next address exists
-            firm.getBlocks()[address] = patch.getFileName();
+            firm.getBlocks()[address] = effect.getFileName();
             blockStartPos = Firmware.BLOCK_SIZE * address;
         }
 
-        patch.setContent(content);
+        effect.setContent(content);
         return true;
     }
 
     /**
-     * Rebuilds all file tables using patch list data.
+     * Rebuilds all file tables using effects list data.
      *
      * @param firm firmware
      */
     void rebuildAllFileTables(Firmware firm) {
         byte[] fileTableBytes = ArrayUtils.makeAndFillArray(2 * Firmware.BLOCK_SIZE, (byte) 0xFF);
         int itemPointer = FileTable.SYSTEM_DATA_SIZE;
-        for (Patch patch : firm.getPatches()) {
-            System.arraycopy(patch.getFileTableItem(), 0, fileTableBytes, itemPointer, FileTable.ITEM_SIZE);
+        for (Effect effect : firm.getEffects()) {
+            System.arraycopy(effect.getFileTableItem(), 0, fileTableBytes, itemPointer, FileTable.ITEM_SIZE);
             itemPointer = itemPointer + FileTable.ITEM_SIZE;
         }
 
@@ -214,7 +214,7 @@ class FileTableService {
     }
 
     /**
-     * Clears firmware's blocks array from given patch name.
+     * Clears firmware's blocks array from given effect name.
      *
      * @param firm     firmware
      * @param fileName filename to remove from blocks

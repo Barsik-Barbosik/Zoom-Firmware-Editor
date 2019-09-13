@@ -2,8 +2,8 @@ package main.java.zoomeditor.gui;
 
 import main.java.ZoomFirmwareEditor;
 import main.java.zoomeditor.gui.listener.UniversalListener;
-import main.java.zoomeditor.gui.tablemodel.PatchTableModel;
-import main.java.zoomeditor.model.Patch;
+import main.java.zoomeditor.gui.tablemodel.EffectTableModel;
+import main.java.zoomeditor.model.Effect;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -37,11 +37,11 @@ public class MainPanel extends JPanel {
 
         btnExtract = GuiFactory.getButton(ZoomFirmwareEditor.getMessage("extractButton"),
                 "extract.png", ZoomFirmwareEditor.getMessage("extractTooltip"));
-        btnExtract.addActionListener(new UniversalListener(UniversalListener.Action.EXTRACT_PATCH));
+        btnExtract.addActionListener(new UniversalListener(UniversalListener.Action.EXTRACT_EFFECT));
 
         btnInject = GuiFactory.getButton(ZoomFirmwareEditor.getMessage("injectButton"),
                 "inject.png", ZoomFirmwareEditor.getMessage("injectTooltip"));
-        btnInject.addActionListener(new UniversalListener(UniversalListener.Action.INJECT_PATCH));
+        btnInject.addActionListener(new UniversalListener(UniversalListener.Action.INJECT_EFFECT));
 
         btnMoveUp = GuiFactory.getButton(ZoomFirmwareEditor.getMessage("moveUpButton"),
                 "up.png", ZoomFirmwareEditor.getMessage("moveUpTooltip"));
@@ -53,7 +53,7 @@ public class MainPanel extends JPanel {
 
         btnRemove = GuiFactory.getButton(ZoomFirmwareEditor.getMessage("removeButton"),
                 "remove.png", ZoomFirmwareEditor.getMessage("removeTooltip"));
-        btnRemove.addActionListener(new UniversalListener(UniversalListener.Action.REMOVE_PATCH));
+        btnRemove.addActionListener(new UniversalListener(UniversalListener.Action.REMOVE_EFFECT));
 
         blocksBar = new JProgressBar();
         blocksBar.setToolTipText(ZoomFirmwareEditor.getMessage("blocksBarTooltip"));
@@ -139,12 +139,12 @@ public class MainPanel extends JPanel {
         blocksBar.setString("Used: " + used + "/" + total + " blocks");
     }
 
-    public void updatePatchTable(ArrayList<Patch> patches) {
-        if (patches == null) {
+    public void updateEffectTable(ArrayList<Effect> effects) {
+        if (effects == null) {
             scrollPane.setViewportView(new JTable());
             return;
         }
-        table = GuiFactory.getTable(new PatchTableModel(patches));
+        table = GuiFactory.getTable(new EffectTableModel(effects));
         scrollPane.setViewportView(table);
     }
 

@@ -1,9 +1,9 @@
 package main.java.zoomeditor.service;
 
 import main.java.ZoomFirmwareEditor;
+import main.java.zoomeditor.model.Effect;
 import main.java.zoomeditor.model.FileTable;
 import main.java.zoomeditor.model.Firmware;
-import main.java.zoomeditor.model.Patch;
 import main.java.zoomeditor.util.ArrayUtils;
 import main.java.zoomeditor.util.ByteUtils;
 
@@ -15,18 +15,18 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PatchService {
-    private static volatile PatchService instance = null;
-    private static final Logger log = Logger.getLogger(PatchService.class.getName());
+public class EffectService {
+    private static volatile EffectService instance = null;
+    private static final Logger log = Logger.getLogger(EffectService.class.getName());
 
-    private PatchService() {
+    private EffectService() {
     }
 
-    public static PatchService getInstance() {
+    public static EffectService getInstance() {
         if (instance == null) {
-            synchronized (PatchService.class) {
+            synchronized (EffectService.class) {
                 if (instance == null) {
-                    instance = new PatchService();
+                    instance = new EffectService();
                 }
             }
         }
@@ -34,70 +34,70 @@ public class PatchService {
     }
 
     /**
-     * Makes patch object from file table item.
+     * Makes effect object from file table item.
      *
      * @param fileTableItem file table item
-     * @return patch
+     * @return effect
      */
-    static Patch makePatchFromFileTableItem(byte[] fileTableItem) {
+    static Effect makeEffectFromFileTableItem(byte[] fileTableItem) {
         final byte[] empty = ArrayUtils.makeAndFillArray(FileTable.SYSTEM_DATA_SIZE, (byte) 0xFF);
         if (fileTableItem == null || fileTableItem.length == 0
                 || Arrays.equals(ArrayUtils.copyPart(fileTableItem, 0, empty.length), empty)) {
             return null;
         }
-        Patch patch = new Patch();
+        Effect effect = new Effect();
         try {
-            patch.setFileTableItem(fileTableItem);
-            patch.setFileName(patch.extractFileNameFromFileTableItem());
-            patch.setAddress(ByteUtils.bytesToUnsignedShortAsInt(patch.getAddressBytes()));
-            patch.setSize(ByteUtils.bytesToInt(patch.getSizeBytes()));
+            effect.setFileTableItem(fileTableItem);
+            effect.setFileName(effect.extractFileNameFromFileTableItem());
+            effect.setAddress(ByteUtils.bytesToUnsignedShortAsInt(effect.getAddressBytes()));
+            effect.setSize(ByteUtils.bytesToInt(effect.getSizeBytes()));
         } catch (NumberFormatException e) {
             log.severe(e.getMessage() + "\nFile table item:\n" + ByteUtils.bytesToHexString(fileTableItem));
             return null;
         }
-        return patch;
+        return effect;
     }
 
     /**
-     * Makes patch object from file.
+     * Makes effect object from file.
      *
-     * @param patchFile patch file
-     * @return patch
+     * @param effectFile effect file
+     * @return effect
      */
-    public Patch makePatchFromFile(File patchFile) {
-        log.info("patchFile: " + patchFile.getAbsolutePath());
-        if (patchFile.getName().length() > Patch.FILENAME_SIZE) {
-            log.severe("File name is too long: " + patchFile.getName());
+    public Effect makeEffectFromFile(File effectFile) {
+        log.info("effectFile: " + effectFile.getAbsolutePath());
+        if (effectFile.getName().length() > Effect.FILENAME_SIZE) {
+            log.severe("File name is too long: " + effectFile.getName());
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("tooLongFileNameErrorBeginning") + " \""
-                    + patchFile.getName() + "\" " + ZoomFirmwareEditor.getMessage("tooLongFileNameErrorEnding"));
+                    + effectFile.getName() + "\" " + ZoomFirmwareEditor.getMessage("tooLongFileNameErrorEnding"));
         }
         try {
-            byte[] patchContent = Files.readAllBytes(patchFile.toPath());
-            byte[] sizeBytes = ByteUtils.intToBytes(patchContent.length);
+            byte[] effectContent = Files.readAllBytes(effectFile.toPath());
+            byte[] sizeBytes = ByteUtils.intToBytes(effectContent.length);
             byte[] fileTableItem = ArrayUtils.makeAndFillArray(FileTable.ITEM_SIZE, (byte) 0xFF);
-            fileTableItem[Patch.ADDR_OFFSET + Patch.ADDR_SIZE] = (byte) 0x01;
-            System.arraycopy(sizeBytes, 0, fileTableItem, Patch.SIZE_OFFSET, Patch.SIZE_SIZE);
+            fileTableItem[Effect.ADDR_OFFSET + Effect.ADDR_SIZE] = (byte) 0x01;
+            System.arraycopy(sizeBytes, 0, fileTableItem, Effect.SIZE_OFFSET, Effect.SIZE_SIZE);
             System.arraycopy(ArrayUtils.makeAndFillArray(FileTable.ITEM_SIZE, (byte) 0x00), 0,
-                    fileTableItem, Patch.FILENAME_OFFSET, Patch.FILENAME_SIZE);
-            System.arraycopy(patchFile.getName().getBytes(), 0, fileTableItem, Patch.FILENAME_OFFSET,
-                    patchFile.getName().length());
-            // NB! Address is not set! It should be assigned during injectPatch().
+                    fileTableItem, Effect.FILENAME_OFFSET, Effect.FILENAME_SIZE);
+            System.arraycopy(effectFile.getName().getBytes(), 0, fileTableItem, Effect.FILENAME_OFFSET,
+                    effectFile.getName().length());
+            // NB! Address is not set! It should be assigned during injectEffect().
 
-            Patch patch = makePatchFromFileTableItem(fileTableItem);
-            if (patch == null) {
-                log.severe("Patch is null!");
-                throw new RuntimeException(ZoomFirmwareEditor.getMessage("patchLoadingError"));
+            Effect effect = makeEffectFromFileTableItem(fileTableItem);
+            if (effect == null) {
+                log.severe("Effect is null!");
+                throw new RuntimeException(ZoomFirmwareEditor.getMessage("effectLoadingError"));
             }
 
-            patch.setContent(patchContent);
-            patch.setName(patch.extractNameFromContent());
-            patch.setType(patch.extractTypeFromContent());
+            effect.setContent(effectContent);
+            effect.setName(effect.extractNameFromContent());
+            effect.setType(effect.extractTypeFromContent());
 
-            // log.info(patch.toString());
-            return patch;
+            // log.info(effect.toString());
+            return effect;
         } catch (Exception e) {
             log.log(Level.SEVERE, e.getMessage(), e);
-            throw new RuntimeException(ZoomFirmwareEditor.getMessage("patchLoadingError"));
+            throw new RuntimeException(ZoomFirmwareEditor.getMessage("effectLoadingError"));
         }
     }
 
@@ -145,29 +145,29 @@ public class PatchService {
     }
 
     /**
-     * Calculates the patch blocks count.
+     * Calculates the effect blocks count.
      *
-     * @param size patch size in bytes
+     * @param size effect size in bytes
      * @return blocks count
      */
-    public static int calculatePatchBlocksCount(int size) {
+    public static int calculateEffectBlocksCount(int size) {
         return (int) Math.ceil((double) size / (Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE));
     }
 
     /**
-     * Performs save of patch file.
+     * Performs save of effect file.
      *
      * @param firm             firmware
-     * @param originalFileName file name in the patches list and files table
+     * @param originalFileName file name in the effects list and files table
      * @param filePath         file system path
      * @return true if saved successfully
      */
-    public boolean savePatchFile(Firmware firm, String originalFileName, Path filePath) {
+    public boolean saveEffectFile(Firmware firm, String originalFileName, Path filePath) {
         log.info("Saving file: " + originalFileName + " as " + filePath.getFileName().toString());
-        for (Patch patch : firm.getPatches()) {
-            if (originalFileName.equals(patch.getFileName())) {
+        for (Effect effect : firm.getEffects()) {
+            if (originalFileName.equals(effect.getFileName())) {
                 try {
-                    Files.write(filePath, patch.getContent());
+                    Files.write(filePath, effect.getContent());
                     log.info("Success!");
                     return true;
                 } catch (IOException e) {
