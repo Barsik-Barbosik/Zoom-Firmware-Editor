@@ -1,6 +1,7 @@
 package main.java.zoomeditor.service;
 
 import main.java.ZoomFirmwareEditor;
+import main.java.zoomeditor.enums.EffectType;
 import main.java.zoomeditor.model.Effect;
 import main.java.zoomeditor.model.FileTable;
 import main.java.zoomeditor.model.Firmware;
@@ -104,39 +105,12 @@ public class EffectService {
 
     public static String getEffectTypeName(byte type, String filename) {
         if (filename.toUpperCase().endsWith("ZDL")) {
-            // TODO: enum
-            switch(type) {
-                case (byte) 0x01:
-                    return "DYNAMICS";
-                case (byte) 0x02:
-                    return "FILTER";
-                case (byte) 0x03:
-                    return "GUITAR DRIVE";
-                case (byte) 0x0C:
-                    return "BASS DRIVE"; // MS60B
-                case (byte) 0x0D:
-                    return "BASS DRIVE"; // MS60B
-                case (byte) 0x14:
-                    return "BASS DRIVE";
-                case (byte) 0x16:
-                    return "BASS DRIVE";
-                case (byte) 0x04:
-                    return "GUTAR AMP";
-                case (byte) 0x05:
-                    return "BASS AMP";
-                case (byte) 0x06:
-                    return "MODULATION";
-                case (byte) 0x07:
-                    return "SFX";
-                case (byte) 0x08:
-                    return "DELAY";
-                case (byte) 0x09:
-                    return "REVERB";
-                case (byte) 0x0B:
-                    return "PEDAL";
-                default:
-                    return String.format("TYPE \"%02x\"", type);
+            for (EffectType effectType : EffectType.values()) {
+                if (type == effectType.getTypeByte()) {
+                    return effectType.getTypeName();
+                }
             }
+            return String.format("TYPE \"%02x\"", type);
         } else if (filename.toUpperCase().endsWith("RAW")) {
             return "DRUM SOUND";
         } else {

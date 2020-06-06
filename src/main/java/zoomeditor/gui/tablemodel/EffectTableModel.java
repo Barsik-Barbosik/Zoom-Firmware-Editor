@@ -59,18 +59,19 @@ public class EffectTableModel implements TableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Effect bean = effects.get(rowIndex);
+        Effect effect = effects.get(rowIndex);
         switch (columnIndex) {
             case 0:
-                return bean.getFileName();
+                return effect.getFileName();
             case 1:
-                return bean.getName();
+                return effect.getName();
             case 2:
-                return EffectService.getEffectTypeName(bean.getType(), bean.getFileName());
+                return EffectService.getEffectTypeName(effect.getType(), effect.getFileName());
+                // return bean.getEffectTypeName();
             case 3:
-                return bean.getSize();
+                return effect.getSize();
             case 4:
-                return EffectService.calculateEffectBlocksCount(bean.getSize());
+                return EffectService.calculateEffectBlocksCount(effect.getSize());
         }
         return "";
     }

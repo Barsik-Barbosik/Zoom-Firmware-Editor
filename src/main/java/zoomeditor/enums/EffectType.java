@@ -17,18 +17,18 @@ public enum EffectType {
     PEDAL((byte) 0x0B, "PEDAL");
 
     private final byte typeByte;
-    private final String description;
+    private final String typeName;
 
     EffectType(byte typeByte, String description) {
         this.typeByte = typeByte;
-        this.description = description;
+        this.typeName = description;
     }
 
     public byte getTypeByte() {
         return typeByte;
     }
 
-    public String getDescription() {
-        return description;
+    public String getTypeName() {
+        return typeName;
     }
 }
