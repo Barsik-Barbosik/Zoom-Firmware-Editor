@@ -15,6 +15,7 @@ public class MainPanel extends JPanel {
     private JTable table;
     private final JScrollPane scrollPane;
     private final JProgressBar blocksBar;
+    private final JButton btnDrumEditor;
     private final JButton btnExtract;
     private final JButton btnInject;
     private final JButton btnMoveUp;
@@ -34,6 +35,10 @@ public class MainPanel extends JPanel {
         btnSaveFirmware = GuiFactory.getButton(ZoomFirmwareEditor.getMessage("saveFirmwareButton"),
                 "save.png", ZoomFirmwareEditor.getMessage("saveFirmwareTooltip"));
         btnSaveFirmware.addActionListener(new UniversalListener(UniversalListener.Action.SAVE_FIRMWARE));
+
+        btnDrumEditor = GuiFactory.getButton(ZoomFirmwareEditor.getMessage("drumsButton"),
+                "drum_editor.png", ZoomFirmwareEditor.getMessage("drumsTooltip"));
+        btnDrumEditor.addActionListener(new UniversalListener(UniversalListener.Action.DRUM_EDITOR));
 
         btnExtract = GuiFactory.getButton(ZoomFirmwareEditor.getMessage("extractButton"),
                 "extract.png", ZoomFirmwareEditor.getMessage("extractTooltip"));
@@ -73,6 +78,7 @@ public class MainPanel extends JPanel {
                                                 .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
                                                         .addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                                         .addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
+                                                                .addComponent(btnDrumEditor, GroupLayout.DEFAULT_SIZE, BUTTON_WIDTH, Short.MAX_VALUE)
                                                                 .addComponent(btnExtract, GroupLayout.DEFAULT_SIZE, BUTTON_WIDTH, Short.MAX_VALUE)
                                                                 .addComponent(btnMoveUp, GroupLayout.DEFAULT_SIZE, BUTTON_WIDTH, Short.MAX_VALUE)
                                                                 .addComponent(btnMoveDown, GroupLayout.DEFAULT_SIZE, BUTTON_WIDTH, Short.MAX_VALUE)
@@ -88,6 +94,8 @@ public class MainPanel extends JPanel {
                                         .addGroup(groupLayout.createSequentialGroup()
                                                 .addComponent(panel, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(ComponentPlacement.RELATED, 160, Short.MAX_VALUE)
+                                                .addComponent(btnDrumEditor)
+                                                .addPreferredGap(ComponentPlacement.RELATED)
                                                 .addComponent(btnExtract)
                                                 .addPreferredGap(ComponentPlacement.RELATED)
                                                 .addComponent(btnInject)

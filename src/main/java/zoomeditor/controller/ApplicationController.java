@@ -254,4 +254,9 @@ public class ApplicationController {
         mainPanel.updateEffectTable(null);
     }
 
+    // DRUMS
+    public void startDrumEditor() {
+        System.out.println("DrumEditor...");
+    }
+
 }

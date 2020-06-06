@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class UniversalListener implements ActionListener {
-    public enum Action {OPEN_FIRMWARE, SAVE_FIRMWARE, EXTRACT_EFFECT, INJECT_EFFECT, MOVE_UP, MOVE_DOWN, REMOVE_EFFECT}
+    public enum Action {OPEN_FIRMWARE, SAVE_FIRMWARE, DRUM_EDITOR, EXTRACT_EFFECT, INJECT_EFFECT, MOVE_UP, MOVE_DOWN, REMOVE_EFFECT}
 
     private final ApplicationController applicationController = ApplicationController.getInstance();
     private final Action action;
@@ -22,6 +22,9 @@ public class UniversalListener implements ActionListener {
                 break;
             case SAVE_FIRMWARE:
                 applicationController.showSaveFirmwareDialog();
+                break;
+            case DRUM_EDITOR:
+                applicationController.startDrumEditor();
                 break;
             case EXTRACT_EFFECT:
                 applicationController.showSaveEffectDialog();
