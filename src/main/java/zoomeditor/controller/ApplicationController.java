@@ -257,6 +257,7 @@ public class ApplicationController {
     // DRUMS
     public void startDrumEditor() {
         System.out.println("DrumEditor...");
+        System.out.println("Dummy address: " + firm.getDrumPatternListStartPosition());
     }
 
 }

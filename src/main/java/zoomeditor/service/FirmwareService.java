@@ -71,6 +71,10 @@ public class FirmwareService {
             log.info("Pedal series: " + firm.getPedalSeries());
             log.info("BIN blocks count: " + firm.getBinBlocksCount()
                     + ", BIN size: " + (Firmware.BLOCK_SIZE * firm.getBinBlocksCount()) + " bytes");
+            if (firm.isDrumMachineCompatible()){
+                int drumPatternListStartPosition = ByteUtils.indexOf(allBytes, Firmware.DRUM_LIST_START_PATTERN, 0);
+                firm.setDrumPatternListStartPosition(drumPatternListStartPosition);
+            }
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage(), e);
             throw new RuntimeException(e);

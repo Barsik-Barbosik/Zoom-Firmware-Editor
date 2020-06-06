@@ -11,6 +11,7 @@ import java.util.List;
 
 public class Firmware {
     public static final byte[] BIN_START_PATTERN = ByteUtils.hexStringToByteArray("55AA00010400");
+    public static final byte[] DRUM_LIST_START_PATTERN = ByteUtils.hexStringToByteArray("44756D6D79000000"); // "Dummy"
     public static final int BIN_BLOCKS_COUNT_OFFSET = 8;
     public static final int BIN_BLOCKS_COUNT_SIZE = 2;
     public static final int SYS_BLOCKS_COUNT = 11;
@@ -36,6 +37,8 @@ public class Firmware {
     private byte[] dataBytes; // NB! First data block contains part of last file table
     private String[] blocks;
     private ArrayList<Effect> effects;
+
+    private int drumPatternListStartPosition;
 
     public Firmware(File firmwareFile) {
         this.firmwareFile = firmwareFile;
@@ -113,5 +116,18 @@ public class Firmware {
 
     public void setEffects(ArrayList<Effect> effects) {
         this.effects = effects;
+    }
+
+    public int getDrumPatternListStartPosition() {
+        return drumPatternListStartPosition;
+    }
+
+    public void setDrumPatternListStartPosition(int drumPatternListStartPosition) {
+        this.drumPatternListStartPosition = drumPatternListStartPosition;
+    }
+
+    public boolean isDrumMachineCompatible() {
+        // TODO: filter pedals with drums, by this.pedalType
+        return true;
     }
 }
