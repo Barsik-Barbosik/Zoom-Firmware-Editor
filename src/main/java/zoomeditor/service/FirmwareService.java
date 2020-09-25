@@ -12,9 +12,11 @@ import main.java.zoomeditor.util.ByteUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -54,12 +56,14 @@ public class FirmwareService {
 
         try {
             byte[] allBytes = Files.readAllBytes(firm.getFirmwareFile().toPath());
-            int binStartPosition = ByteUtils.indexOf(allBytes, Firmware.BIN_START_PATTERN, 0);
+            //int binStartPosition = ByteUtils.indexOf(allBytes, Firmware.BIN_START_PATTERN, 0);
+            int binStartPosition = findBIN136Position(allBytes);
             if (binStartPosition == -1) {
                 log.severe("BIN is not found!");
                 throw new RuntimeException("BIN is not found!");
             }
             firm.setBinStartPosition(binStartPosition);
+            //ByteUtils.printBytesAsHex(allBytes, firm.getBinStartPosition() + Firmware.BIN_BLOCKS_COUNT_OFFSET, Firmware.BIN_BLOCKS_COUNT_SIZE);
             firm.setBinBlocksCount(ByteUtils.bytesToUnsignedShortAsInt(ArrayUtils.copyPart(allBytes,
                     firm.getBinStartPosition() + Firmware.BIN_BLOCKS_COUNT_OFFSET, Firmware.BIN_BLOCKS_COUNT_SIZE)));
             firm.setSystemBytes(ArrayUtils.copyPart(allBytes,
@@ -71,8 +75,9 @@ public class FirmwareService {
             log.info("Pedal series: " + firm.getPedalSeries());
             log.info("BIN blocks count: " + firm.getBinBlocksCount()
                     + ", BIN size: " + (Firmware.BLOCK_SIZE * firm.getBinBlocksCount()) + " bytes");
-            if (firm.isDrumMachineCompatible()){
-                int drumPatternListStartPosition = ByteUtils.indexOf(allBytes, Firmware.DRUM_LIST_START_PATTERN, 0);
+            if (firm.isDrumMachineCompatible()) {
+//                int drumPatternListStartPosition = ByteUtils.indexOf(allBytes, Firmware.DRUM_LIST_START_PATTERN, 0);
+                int drumPatternListStartPosition = ByteUtils.indexOf(firm.getDataBytes(), Firmware.DRUM_LIST_START_PATTERN, 0);
                 firm.setDrumPatternListStartPosition(drumPatternListStartPosition);
             }
         } catch (IOException e) {
@@ -92,6 +97,34 @@ public class FirmwareService {
 
         // logBlocksAllocation(firm);
         return firm;
+    }
+
+    private int findBIN136Position(byte[] allBytes) {
+        final int RSRC_ADDR_OFFSET = 20;
+        final int RSRC_DIR_NAME_ENTRIES_OFFSET = 16;
+        final int SUBDIRECTORY_OFFSET_OFFSET = 4;
+        final int BIN_COUNT_OFFSET = 14;
+
+        int rsrcStartPosition = ByteUtils.indexOf(allBytes, Firmware.RSRC_START_PATTERN, 0);
+        log.info("rsrcStartPosition: " + rsrcStartPosition);
+        int rsrcDirTableLevel1Position = ByteUtils.read4bytesAsUnsignedInt(allBytes, rsrcStartPosition + RSRC_ADDR_OFFSET);
+        log.info("rsrcDirTableLevel1Position: " + rsrcDirTableLevel1Position);
+        int binDirStartPosition = rsrcDirTableLevel1Position + RSRC_DIR_NAME_ENTRIES_OFFSET;
+        // here we can get offset and then look, whether it is BIN -- yes, it is BIN, but with additional unneeded bytes
+
+        // can we simply read just the first byte instead of that mask? or read as a short?
+        int subdirectoryOffset = ByteUtils.applyMask(ByteUtils.read4bytesAsUnsignedInt(allBytes, binDirStartPosition + SUBDIRECTORY_OFFSET_OFFSET));
+        log.info("subdirectoryOffset: " + subdirectoryOffset);
+        int rsrcDirTableLevel2Position = rsrcDirTableLevel1Position + subdirectoryOffset;
+        log.info("rsrcDirTableLevel2Position: " + rsrcDirTableLevel2Position);
+        int binCountPosition = rsrcDirTableLevel2Position + BIN_COUNT_OFFSET;
+        log.info("binCountPosition: " + binCountPosition);
+        int countOfBINs = ByteUtils.read2bytesAsUnsignedInt(allBytes, binCountPosition);
+        log.info("countOfBINs: " + countOfBINs);
+
+        //ByteUtils.printBytesAsHex(allBytes, rsrcDirTableLevel2Position, 100);
+
+        return -1;
     }
 
     private PedalSeries detectPedalSeries(byte[] allBytes) {
@@ -180,7 +213,7 @@ public class FirmwareService {
      * Injects a effect into the current firmware.
      *
      * @param firm             firmware
-     * @param effect            effect to inject
+     * @param effect           effect to inject
      * @param rebuildFileTable run file table rebuilding or not
      */
     public void injectEffect(Firmware firm, Effect effect, boolean rebuildFileTable) {

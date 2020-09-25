@@ -10,7 +10,13 @@ import java.util.Collections;
 import java.util.List;
 
 public class Firmware {
+    public static final byte[] RSRC_START_PATTERN = ByteUtils.hexStringToByteArray("2E72737263000000"); // ".rsrc"
+    //public static final int RSRC_ADDR_OFFSET = 20;
+    //public static final byte[] BIN_DIR_NAME_PATTERN = ByteUtils.hexStringToByteArray("500E0080");
+
+    @Deprecated
     public static final byte[] BIN_START_PATTERN = ByteUtils.hexStringToByteArray("55AA00010400");
+    @Deprecated
     public static final byte[] DRUM_LIST_START_PATTERN = ByteUtils.hexStringToByteArray("44756D6D79000000"); // "Dummy"
     public static final int BIN_BLOCKS_COUNT_OFFSET = 8;
     public static final int BIN_BLOCKS_COUNT_SIZE = 2;

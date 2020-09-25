@@ -3,10 +3,13 @@ package main.java.zoomeditor.controller;
 import main.java.ZoomFirmwareEditor;
 import main.java.zoomeditor.gui.AppWindow;
 import main.java.zoomeditor.gui.MainPanel;
+import main.java.zoomeditor.model.DrumPatternItem;
+import main.java.zoomeditor.model.FileTable;
 import main.java.zoomeditor.model.Firmware;
 import main.java.zoomeditor.model.Effect;
 import main.java.zoomeditor.service.FirmwareService;
 import main.java.zoomeditor.service.EffectService;
+import main.java.zoomeditor.util.ArrayUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -258,6 +261,13 @@ public class ApplicationController {
     public void startDrumEditor() {
         System.out.println("DrumEditor...");
         System.out.println("Dummy address: " + firm.getDrumPatternListStartPosition());
+        DrumPatternItem item = new DrumPatternItem();
+
+        byte[] name = new byte[DrumPatternItem.NAME_SIZE];
+        System.arraycopy(firm.getSystemBytes(), 0, name, Effect.SIZE_OFFSET, Effect.SIZE_SIZE);
+
+        item.setName("sdssdsdsdsdds".toCharArray());
+        String aaa;
     }
 
 }

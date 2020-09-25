@@ -33,7 +33,7 @@ ZOOM B1X Four *
 
 * - under construction
 ```
-**New effects injection into Four-series pedals is not ready yet. But it is possible! You can you mungwell's python script to install them: [zoom-zt2](https://github.com/mungewell/zoom-zt2)!**
+**New effects injection into Four-series pedals is not ready yet. But it is possible! You can you mungewell's python script to install them: [zoom-zt2](https://github.com/mungewell/zoom-zt2)!**
 
 It seems that both pedal types are not compatible with each other: ZDL-type pedals cannot use ZD2-effects and vice versa.
 

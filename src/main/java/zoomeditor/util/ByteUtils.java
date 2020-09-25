@@ -1,5 +1,7 @@
 package main.java.zoomeditor.util;
 
+import main.java.zoomeditor.model.Firmware;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -109,6 +111,26 @@ public class ByteUtils {
         return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array();
     }
 
+    public static int read2bytesAsUnsignedInt(byte[] byteArray, int position) { // still signed int
+        byte[] bytes = ArrayUtils.copyPart(byteArray, position, 2);
+        ByteUtils.printBytesAsHex(bytes);
+        return Short.toUnsignedInt(ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getShort());
+    }
+
+    public static int read4bytesAsUnsignedInt(byte[] byteArray, int position) { // still signed int
+        byte[] bytes = ArrayUtils.copyPart(byteArray, position, 4);
+        ByteUtils.printBytesAsHex(bytes);
+        return Math.toIntExact(ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt());
+    }
+
+    public static int applyMask(int value) {
+//        System.out.println("res: " + (value & 0x80000000));
+//        if ((value & 0x80000000) == 0) {
+//            return value;
+//        }
+        return value & 0x7fffffff;
+    }
+
     /**
      * Converts byte[] to String of hex values, separated by "|".
      * USE ONLY FOR DEBUG or LOGGING!
@@ -122,6 +144,19 @@ public class ByteUtils {
             sb.append(String.format("%x|", b));
         }
         return sb.toString();
+    }
+
+    @Deprecated
+    public static void printBytesAsHex(byte[] bytes) {
+        printBytesAsHex(bytes, 0, bytes.length);
+    }
+
+    @Deprecated
+    public static void printBytesAsHex(byte[] bytes, int firstPos, int count) {
+        for (int i = firstPos; i < firstPos + count; i++) {
+            System.out.printf("%x|", bytes[i]);
+        }
+        System.out.println();
     }
 
 }
