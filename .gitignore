@@ -1,3 +1,6 @@
 /Zoom.iml
 .idea
 out
+
+/build
+/dist
