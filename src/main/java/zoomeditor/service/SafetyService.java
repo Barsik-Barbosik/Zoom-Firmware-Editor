@@ -33,28 +33,40 @@ public class SafetyService {
         return instance;
     }
 
-    /** ZDL family (G1on/B1on/MS-50G/60B/70CDR) vs ZD2 family (G3n/G5n/Four). */
+    /**
+     * ZDL family (G1on/B1on/MS-50G/60B/70CDR) vs ZD2 family (G3n/G5n/Four).
+     * Verified against real updaters: G1on v1.21 and B1on v1.30 report 0x01,
+     * MS-70CDR v2.10 reports 0x02, MS-60B v2.10 is mixed 0x01/0x02 (tables
+     * written by different updater versions). All are ZDL-era. Only 0x05
+     * means ZD2. Scans every table slot instead of trusting the first.
+     */
     public String detectFirmwareFamily(Firmware firm) {
         if (firm == null || firm.getSystemBytes() == null) {
             return "UNKNOWN";
         }
-        // 4th byte of file-table system header: 0x01 = ZDL gen, 0x05 = ZD2 gen.
+        boolean zd2 = false;
+        boolean zdl = false;
         for (int i = 0; i < 4; i++) {
             int position = Firmware.BLOCK_SIZE * (3 + i * 2);
             if (position + 7 >= firm.getSystemBytes().length) {
                 continue;
             }
-            // valid table marker: 2nd byte A5, bytes 6-8 FF (same rule as FileTableService)
+            // valid table marker: 2nd byte A5 (same rule as FileTableService)
             if (firm.getSystemBytes()[position + 1] != (byte) 0xA5) {
                 continue;
             }
             byte b = firm.getSystemBytes()[position + 3];
-            if (b == (byte) 0x01) {
-                return "ZDL";
+            if (b == (byte) 0x01 || b == (byte) 0x02) {
+                zdl = true;
+            } else if (b == (byte) 0x05) {
+                zd2 = true;
             }
-            if (b == (byte) 0x05) {
-                return "ZD2";
-            }
+        }
+        if (zdl) {
+            return "ZDL";
+        }
+        if (zd2) {
+            return "ZD2";
         }
         return "UNKNOWN";
     }

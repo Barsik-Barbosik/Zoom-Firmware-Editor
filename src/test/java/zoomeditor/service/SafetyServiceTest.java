@@ -70,6 +70,19 @@ public class SafetyServiceTest {
     }
 
     @Test
+    public void msSeriesMarker02CountsAsZdl() {
+        // Real-world: MS-70CDR v2.10 reports 0x02, MS-60B v2.10 is mixed 0x01/0x02.
+        SafetyService s = SafetyService.getInstance();
+        Firmware fw = zdlFirmware("MS-70CDR_v2.10.exe", 100);
+        fw.getSystemBytes()[Firmware.BLOCK_SIZE * 3 + 3] = (byte) 0x02;
+        assertEquals("ZDL", s.detectFirmwareFamily(fw));
+        // mixed 0x01/0x02 (as seen in MS-60B v2.10) is still ZDL
+        fw.getSystemBytes()[Firmware.BLOCK_SIZE * 5 + 1] = (byte) 0xA5;
+        fw.getSystemBytes()[Firmware.BLOCK_SIZE * 5 + 3] = (byte) 0x02;
+        assertEquals("ZDL", s.detectFirmwareFamily(fw));
+    }
+
+    @Test
     public void guitarAmpIntoBassWithoutDriverIsBlocked() {
         SafetyService s = SafetyService.getInstance();
         Firmware fw = zdlFirmware("B1on_v1.21_Win_E.exe", 100);
