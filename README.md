@@ -1,4 +1,10 @@
-# Zoom Firmware Editor
+# Zoom Firmware Editor (0.99-safety fork)
+
+> **This talks to a real FX pedal and can brick it. Read [SAFETY.md](SAFETY.md)
+> first, keep your original updater (auto-snapshotted as `.orig.bak`), and
+> prefer Zoom Effect Manager for flashing. Build: [BUILD.md](BUILD.md).
+> Synth-curation plan: [docs/SYNTH_FRANKENSTEIN.md](docs/SYNTH_FRANKENSTEIN.md).**
+
 Zoom Firmware Editor is a software for modifying guitar/bass multi-effects pedal firmware updater files. It can be used for adding, removing, swapping effects; replacing drum sample sounds.
 
 Later will be added possibitily of modifying drum patterns. 

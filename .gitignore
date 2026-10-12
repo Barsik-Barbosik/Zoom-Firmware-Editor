@@ -1,3 +1,8 @@
 /Zoom.iml
 .idea
 out
+
+target/
+*.orig.bak
+dist/
+.DS_Store

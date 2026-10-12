@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>ZoomFirmwareEditor</string>
+  <key>CFBundleDisplayName</key><string>Zoom Firmware Editor</string>
+  <key>CFBundleIdentifier</key><string>zoomeditor.ZoomFirmwareEditor</string>
+  <key>CFBundleVersion</key><string>0.99</string>
+  <key>CFBundleShortVersionString</key><string>0.99-safety</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleExecutable</key><string>ZoomFirmwareEditor</string>
+  <!-- 10.13 High Sierra minimum. Do not raise: Java 8 bytecode + no
+       Metal/hardened requirements keeps it launching from 10.13 to current. -->
+  <key>LSMinimumSystemVersion</key><string>10.13</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSRequiresAquaSystemAppearance</key><false/>
+</dict>
+</plist>

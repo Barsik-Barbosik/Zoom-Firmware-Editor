@@ -123,6 +123,8 @@ public class FirmwareService {
 
     /**
      * Performs save of firmware file.
+     * Always snapshots the ORIGINAL updater to {@code <source>.orig.bak}
+     * (once) before writing, so a bad mod never destroys your only copy.
      *
      * @param firm     firmware
      * @param filePath file system path
@@ -131,6 +133,7 @@ public class FirmwareService {
     public boolean saveModifiedFirmwareFile(Firmware firm, Path filePath) {
         log.info("Saving modified firmware file: " + filePath.getFileName().toString());
         try {
+            backupOriginal(firm);
             if ("true".equalsIgnoreCase(ZoomFirmwareEditor.getProperty("enableDefragmentation"))) {
                 defragmentFirmware(firm);
             } else {
@@ -154,13 +157,50 @@ public class FirmwareService {
     }
 
     /**
+     * Copies the original updater next to itself as {@code <name>.orig.bak}
+     * the first time we save. Never overwrites an existing backup.
+     */
+    public Path backupOriginal(Firmware firm) {
+        try {
+            if (firm == null || firm.getFirmwareFile() == null) {
+                return null;
+            }
+            Path src = firm.getFirmwareFile().toPath();
+            Path bak = src.resolveSibling(src.getFileName().toString() + ".orig.bak");
+            if (!java.nio.file.Files.exists(bak)) {
+                java.nio.file.Files.copy(src, bak);
+                log.info("Original backup written: " + bak.getFileName());
+            } else {
+                log.info("Backup already exists: " + bak.getFileName());
+            }
+            return bak;
+        } catch (IOException e) {
+            log.log(Level.SEVERE, "Backup failed: " + e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
      * Injects a patch into the current firmware.
+     * Runs {@link SafetyService#validateInject} dry-run first; blocked
+     * injections throw before any block is reserved.
      *
      * @param firm             firmware
      * @param patch            patch to inject
      * @param rebuildFileTable run file table rebuilding or not
      */
     public void injectPatch(Firmware firm, Patch patch, boolean rebuildFileTable) {
+        main.java.zoomeditor.model.SafetyReport report =
+                SafetyService.getInstance().validateInject(firm, patch);
+        if (report.isBlocked()) {
+            for (String e : report.getErrors()) {
+                log.severe("Inject blocked: " + e);
+            }
+            throw new RuntimeException(String.join("\n", report.getErrors()));
+        }
+        for (String w : report.getWarnings()) {
+            log.warning("Inject warning: " + w);
+        }
         int blocksCount = PatchService.calculatePatchBlocksCount(patch.getSize());
         log.info("Injecting file: " + patch.getFileName()
                 + " (" + blocksCount + " blocks) into " + firm.getFirmwareFile().getName());
@@ -209,8 +249,11 @@ public class FirmwareService {
                 byte[] sizeBytes = ByteUtils.shortToBytes(Integer.valueOf(size).shortValue());
                 System.arraycopy(sizeBytes, 0, blockInfoBytes, Firmware.BLOCK_SIZE_OFFSET, Firmware.BLOCK_SIZE_SIZE);
             } else {
-                // set size for the last block
+                // set size for the last block; exact multiples mean a full last block
                 size = patch.getSize() % (Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE);
+                if (size == 0) {
+                    size = Firmware.BLOCK_SIZE - Firmware.BLOCK_INFO_SIZE;
+                }
                 byte[] sizeBytes = ByteUtils.shortToBytes(Integer.valueOf(size).shortValue());
                 System.arraycopy(sizeBytes, 0, blockInfoBytes, Firmware.BLOCK_SIZE_OFFSET, Firmware.BLOCK_SIZE_SIZE);
             }
@@ -229,7 +272,9 @@ public class FirmwareService {
 
         firm.getPatches().add(patch);
 
+        // Table overflow was already pre-checked in validateInject; this is a final assert.
         if (firm.getPatches().size() * FileTable.ITEM_SIZE >= Firmware.BLOCK_SIZE * 2) {
+            firm.getPatches().remove(patch);
             log.severe("Too many patch files! File table will not fit into 2 blocks!");
             throw new RuntimeException(ZoomFirmwareEditor.getMessage("tooManyFilesError"));
         }
@@ -241,8 +286,17 @@ public class FirmwareService {
 
     /**
      * Removes selected patches from the firmware.
+     * Refuses to remove {@link SafetyService#GUARD_FILE}.
      */
     public void removePatchFile(Firmware firm, ArrayList<String> filesToRemove) {
+        main.java.zoomeditor.model.SafetyReport report =
+                SafetyService.getInstance().validateRemove(firm, filesToRemove);
+        if (report.isBlocked()) {
+            throw new RuntimeException(String.join("\n", report.getErrors()));
+        }
+        for (String w : report.getWarnings()) {
+            log.warning("Remove warning: " + w);
+        }
         try {
             firm.getPatches().removeIf(patch -> filesToRemove.contains(patch.getFileName()));
             for (String fileName : filesToRemove) {

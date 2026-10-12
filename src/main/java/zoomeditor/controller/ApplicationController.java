@@ -5,8 +5,10 @@ import main.java.zoomeditor.gui.AppWindow;
 import main.java.zoomeditor.gui.MainPanel;
 import main.java.zoomeditor.model.Firmware;
 import main.java.zoomeditor.model.Patch;
+import main.java.zoomeditor.model.SafetyReport;
 import main.java.zoomeditor.service.FirmwareService;
 import main.java.zoomeditor.service.PatchService;
+import main.java.zoomeditor.service.SafetyService;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -102,6 +104,9 @@ public class ApplicationController {
             if (isSuccessfulSaving) {
                 firmwareFile = fc.getSelectedFile();
                 updateTitle();
+                JOptionPane.showMessageDialog(appWindow,
+                        ZoomFirmwareEditor.getMessage("saveBackupInfo"),
+                        ZoomFirmwareEditor.getMessage("warningTitle"), JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("firmwareSaveError"),
                         ZoomFirmwareEditor.getMessage("errorTitle"), JOptionPane.ERROR_MESSAGE);
@@ -168,6 +173,22 @@ public class ApplicationController {
         if (firm != null && firm.getPatches() != null) {
             try {
                 Patch patch = patchService.makePatchFromFile(patchFile);
+                SafetyReport report = SafetyService.getInstance().validateInject(firm, patch);
+                if (report.isBlocked()) {
+                    JOptionPane.showMessageDialog(appWindow, String.join("\n", report.getErrors()),
+                            ZoomFirmwareEditor.getMessage("errorTitle"), JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (report.hasWarnings()) {
+                    int choice = JOptionPane.showConfirmDialog(appWindow,
+                            String.join("\n", report.getWarnings())
+                                    + "\n\n" + ZoomFirmwareEditor.getMessage("safetyConfirmQuestion"),
+                            ZoomFirmwareEditor.getMessage("safetyConfirmTitle"),
+                            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (choice != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                }
                 firmwareService.injectPatch(firm, patch, true);
             } catch (Exception e) {
                 log.log(Level.SEVERE, e.getMessage(), e);
@@ -217,7 +238,29 @@ public class ApplicationController {
                 String fileName = (String) table.getValueAt(i, 0);
                 filesToRemove.add(fileName);
             }
-            firmwareService.removePatchFile(firm, filesToRemove);
+            SafetyReport report = SafetyService.getInstance().validateRemove(firm, filesToRemove);
+            if (report.isBlocked()) {
+                JOptionPane.showMessageDialog(appWindow, String.join("\n", report.getErrors()),
+                        ZoomFirmwareEditor.getMessage("errorTitle"), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (report.hasWarnings()) {
+                int choice = JOptionPane.showConfirmDialog(appWindow,
+                        String.join("\n", report.getWarnings())
+                                + "\n\n" + ZoomFirmwareEditor.getMessage("safetyConfirmQuestion"),
+                        ZoomFirmwareEditor.getMessage("safetyConfirmTitle"),
+                        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (choice != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+            try {
+                firmwareService.removePatchFile(firm, filesToRemove);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(appWindow, e.getMessage(),
+                        ZoomFirmwareEditor.getMessage("errorTitle"), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             updateGuiElements();
         } else {
             JOptionPane.showMessageDialog(appWindow, ZoomFirmwareEditor.getMessage("patchesAreNotSelected"),

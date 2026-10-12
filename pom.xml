@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>zoomeditor</groupId>
+  <artifactId>zoom-firmware-editor</artifactId>
+  <version>0.99-safety</version>
+  <packaging>jar</packaging>
+  <name>Zoom Firmware Editor</name>
+  <description>Offline editor for Zoom pedal updater EXEs (ZDL/ZD2). Safety-hardened fork.</description>
+  <url>https://github.com/Barsik-Barbosik/Zoom-Firmware-Editor</url>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Java 8 bytecode: runs on macOS 10.13+ with any JRE 8+. Do NOT raise to
+         17: OpenJDK 17 runtimes require macOS 10.15+, breaking the 10.13 target.
+         See BUILD.md and packaging/macos/Info.plist. -->
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <junit.version>5.10.3</junit.version>
+    <shade.version>3.6.0</shade.version>
+  </properties>
+
+  <build>
+    <!-- Non-standard layout inherited from upstream: packages live under src/main/java
+         as main.java.*, and at RUNTIME the app expects classpath entries
+         "main/resources/app.config", "main/resources/messages", "main/resources/icons/*"
+         (see ZoomFirmwareEditor.CONFIG_FILE and GuiFactory.ICONS_PATH).
+         So resources must be copied with their main/resources prefix intact. -->
+    <sourceDirectory>src/main/java</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>src</directory>
+        <includes>
+          <include>main/resources/**</include>
+        </includes>
+      </resource>
+    </resources>
+    <testSourceDirectory>src/test/java</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${shade.version}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals><goal>shade</goal></goals>
+            <configuration>
+              <finalName>ZoomFirmwareEditor-${project.version}</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>main.java.ZoomFirmwareEditor</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>
